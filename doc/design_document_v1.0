@@ -1,0 +1,90 @@
+Design Document for Nirodha
+
+Goal: Create a management program for managing views in a web app with HTML, CSS, and Javascript
+
+Commands:
+
+generate ui {name}
+
+create the folder structure for Nirodha project
+
+generate view <template>.vtmp
+
+	Generate the following structure
+
+Folder: {view_id}
+
+Symlinks to Nirodha folders:
+{view_id}/thirdparty/{name}/
+{view_id}/shared/{name}/
+{view_id}/shared/templates/
+
+Actual folders for any custom stuff:
+{view_id}/custom/js/
+{view_id}/custom/css/
+{view_id}/custom/templates/
+{view_id}/{view_id}.thtml
+
+deploy/js
+deploy/css
+deploy/
+
+thtml structure:
+<!DOCTYPE html>
+<html>
+<head>
+	#sect:includes
+	exampleLib1
+	exampleLib2
+	#endsect
+</head>
+<body>
+
+<h1>My First Heading</h1>
+
+<p>My first paragraph.</p>
+
+</body>
+
+	#sect:templates
+	template1.html
+	#endsect
+
+</html>
+
+Renders to:
+<!DOCTYPE html>
+<html>
+<head>
+
+<script src="js/{view_id}.js"></script>
+<link rel="stylesheet" type="text/css" href="css/{view_id}.css">
+
+</head>
+<body>
+
+<h1>My First Heading</h1>
+
+<p>My first paragraph.</p>
+
+</body>
+
+
+<script id="template1" type="text/plain">
+	{Contents of the template file}
+</script>
+
+</html>
+
+
+start <port>
+
+	host the thtml view templates in the root of the nirohda folder, recompiling on each request, default to port 8080
+
+deploy 
+
+	compile the thtml file, minify all of the js libraries and css, and deploy to this structure:
+
+js/{view_id}.js
+css/{view_id}.css
+{view_id}.html
