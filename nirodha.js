@@ -35,10 +35,46 @@ program.parse(process.argv);
  *  Date: Oct 24 2013
  */
 
-debugger;
-console.log('stuff');
+// Temp hack to not accept two arguments
+var argumentCount = 0;
 
 if(program.create) {
+  argumentCount++;
+}
+
+if(program.generate) {
+  argumentCount++;
+}
+
+if(program.start) {
+  argumentCount++;
+}
+
+if(program.deploy) {
+  argumentCount++;
+}
+
+if(argumentCount != 1) {
+  console.log("An incorrect number of arguments was specified: " + argumentCount + ", please try your command again with only one option");
+}
+else {
+  if(program.create) {
   var create = require('./bin/create.js');
   create(program.args);
+  }
+
+  if(program.generate) {
+    var generate = require('./bin/generate.js');
+    generate(program.args);
+  }
+
+  if(program.start) {
+    var start = require('./bin/start.js');
+    start(program.args);
+  }
+
+  if(program.deploy) {
+    var deploy = require('./bin/deploy.js');
+    deploy(program.args);
+  }
 }
