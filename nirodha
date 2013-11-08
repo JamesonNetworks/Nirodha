@@ -5,6 +5,10 @@
  */
 
 var program = require('commander');
+var logging = require('./bin/logging.js');
+var fs = require('fs');
+var path = require('path');
+var settings = require('./settings.json');
 
 function list(val) {
   return val.split(',').map(Number);
@@ -13,8 +17,7 @@ function list(val) {
 program
   .version('0.0.1')
   .option('-c, --create', 'Create a new Nirodha project')
-  .option('-g, --generate', 'Generate a new view inside of a Nirodha project')
-  .option('-s, --start', 'Start hosting the Nirodha project')
+  .option('-s, --start', 'Start hosting the Nirodha project, to enable compression pass withCompression to the -s switch')
   .option('-d, --deploy', 'Compile the Nirodha project to the deploy folder');
 
 // must be before .parse() since
@@ -38,11 +41,36 @@ program.parse(process.argv);
 // Temp hack to not accept two arguments
 var argumentCount = 0;
 
-if(program.create) {
-  argumentCount++;
+// Try to get the settings from the nirodha config file in current directory
+var currentSettings;
+logging('Try to get the settings from info.json...');
+try {
+  currentSettings = require(process.cwd() + '/info.json');
+  logging('Settings set: ' + JSON.stringify(currentSettings));
+}
+catch(err) {
+  logging('Error occured getting the settings, most likely they do not exists: ' + err);
+  currentSettings = null;
 }
 
-if(program.generate) {
+var defaultSettings = require('./tmpl/newproject.default.json');
+var inNirodaWorkingDir = false;
+
+logging('Current directory: ' + process.cwd());
+
+// Check the settings of the file and determine if we are compatible
+if(currentSettings) {
+  logging('In a Nirodha working directory')
+  if(currentSettings.version === defaultSettings.version) {
+    logging('In a compatible version for the Nirodha working directory');
+    inNirodaWorkingDir = true;
+  }
+  else {
+    console.log('The version of this Nirodha project is not compatible with the running version of Nirodha...');
+  }
+}
+
+if(program.create) {
   argumentCount++;
 }
 
@@ -55,22 +83,40 @@ if(program.deploy) {
 }
 
 if(argumentCount != 1) {
-  console.log("An incorrect number of arguments was specified: " + argumentCount + ", please try your command again with only one option");
+  console.log("An incorrect number of arguments was specified: " + argumentCount);
+  if(argumentCount == 0) {
+    console.log("There were no arguments processed, perhaps you are missing a switch like '-c'? Consult 'nirodha -h' for more info");
+  }
+  else {
+    console.log("Too many arguments...");
+  }
 }
 else {
   if(program.create) {
-  var create = require('./bin/create.js');
-  create(program.args);
-  }
-
-  if(program.generate) {
-    var generate = require('./bin/generate.js');
-    generate(program.args);
+    var create = require('./bin/create.js');
+    if(inNirodaWorkingDir) {
+      logging('Trying to run create inside of a nirodha project', 0);
+      if(program.args[0] === 'view' && program.args.length == 2) {
+        logging('Creating view for ' + program.args[1]);
+        create(program.args);
+      }
+      else {
+        logging('Received an unknown command');
+      }
+    }
+    else {
+      create(program.args);
+    }
   }
 
   if(program.start) {
-    var start = require('./bin/start.js');
-    start(program.args);
+    if(inNirodaWorkingDir) {
+      var start = require('./bin/start.js');
+      start(program.args);
+    }
+    else {
+      console.log('Not a valid Nirodha project');
+    }
   }
 
   if(program.deploy) {

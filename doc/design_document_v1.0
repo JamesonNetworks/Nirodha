@@ -5,13 +5,23 @@ Goal: Create a management program for managing views in a web app with HTML, CSS
 
 Commands:
 
-generate ui {name}
+start <port>
 
-create the folder structure for Nirodha project
+	host the thtml view templates in the root of the nirohda folder, recompiling on each request, default to port 8080
 
-generate view <template>.vtmp
+deploy 
 
-	Generate the following structure
+	compile the thtml file, minify all of the js libraries and css, and deploy to this structure:
+
+create {name}
+
+	creates the root folder structure for a Nirodha project, with a default index.thtml view
+
+create view <template>.vtmp
+
+	creates a Nirodha 'view,' which is the main html component of a nirodha project
+
+Folder structure:
 
 Folder: {view_id}
 
@@ -76,15 +86,6 @@ Renders to:
 </script>
 
 </html>
-
-
-start <port>
-
-	host the thtml view templates in the root of the nirohda folder, recompiling on each request, default to port 8080
-
-deploy 
-
-	compile the thtml file, minify all of the js libraries and css, and deploy to this structure:
 
 js/{view_id}.js
 css/{view_id}.css
