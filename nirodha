@@ -15,7 +15,7 @@ function list(val) {
 }
 
 program
-  .version('0.0.1')
+  .version('0.0.1a')
   .option('-c, --create', 'Create a new Nirodha project')
   .option('-s, --start', 'Start hosting the Nirodha project, to enable compression pass withCompression to the -s switch')
   .option('-d, --deploy', 'Compile the Nirodha project to the deploy folder');

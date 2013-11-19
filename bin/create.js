@@ -29,7 +29,7 @@ function copyFile(source, target, cb) {
 
 function createNirodhaView(viewname) {
 	// Copy in the default view
-	copyFile(settings.path_to_nirodha + 'tmpl/defaultView.thtml', './' + viewname + '.thtml', function(err) {
+	copyFile(settings.path_to_nirodha + 'tmpl/defaultView.thtml', './' + viewname + '.html', function(err) {
 		if(err) {
 			logging('Problem copying default view: ' + err, 0);
 		}
@@ -55,6 +55,16 @@ function createNirodhaView(viewname) {
 		}
 		else {
 			logging('Successfully created ' + viewname + '.css');
+		}
+	});
+
+	// Copy in the default json accessories
+	copyFile(settings.path_to_nirodha + 'tmpl/defaultView.json', './' + viewname + '.json', function(err) {
+		if(err) {
+			logging('Problem copying default css: ' + err, 0);
+		}
+		else {
+			logging('Successfully created ' + viewname + '.json');
 		}
 	});
 }
@@ -95,7 +105,7 @@ module.exports = function (args) {
 			viewname = 'index';
 			
 			// Copy in the default view
-			copyFile(settings.path_to_nirodha + 'tmpl/defaultView.thtml', './' + args[0] + '/' + viewname + '.thtml', function(err) {
+			copyFile(settings.path_to_nirodha + 'tmpl/defaultView.thtml', './' + args[0] + '/' + viewname + '.html', function(err) {
 				if(err) {
 					logging('Problem copying default view: ' + err, 0);
 				}
@@ -121,6 +131,16 @@ module.exports = function (args) {
 				}
 				else {
 					logging('Successfully created ' + viewname + '.css');
+				}
+			});
+
+			// Copy in the default json accessories
+			copyFile(settings.path_to_nirodha + 'tmpl/defaultView.json', './' + args[0] + '/' + viewname + '.json', function(err) {
+				if(err) {
+					logging('Problem copying default css: ' + err, 0);
+				}
+				else {
+					logging('Successfully created ' + viewname + '.json');
 				}
 			});
 
