@@ -3,6 +3,7 @@ var logging = require('./logging.js');
 var async = require('async');
 var utils = require('./utilities.js');
 var settings = require('../settings.json');
+var compressor = require('node-minify');
 
 // Handle to library manager
 var lm = require('./libraryManager.js');
@@ -54,6 +55,7 @@ DeployManager.prototype.deploy = function(view) {
 // Set up search
 searchDirectories.push('./custom');
 searchDirectories.push(settings.path_to_nirodha + 'libs');
+searchDirectories.push('custom/static');
 
 /*
 *	Parse the libraries included in the thtml
@@ -205,21 +207,77 @@ async.series([
 			//Insert template files
 			function(cb) {
 				var template_filename = './custom/templates/' + view + '_templates.html'
-				logging('Adding the templates html to the core html file...');
-				logging('Loading the following file: ' + template_filename);
+				logging('Adding the templates html to the core html file...', 7);
+				logging('Loading the following file: ' + template_filename, 7);
 				var template_text = fs.readFileSync(template_filename).toString();
 				firstPartOfPage = firstPartOfPage + template_text;
 				pageText = firstPartOfPage + lastPartOfPage;
 				cb(null, null);
+			},
+			//Copy static files
+			function(cb) {
+				walkSync(searchDirectories[2], function(dir, directories, fileNames) {
+					logging('Directory: ' + dir, 7);
+					logging('FileNames: ' + JSON.stringify(fileNames), 7);
+
+					for(var i = 0; i < fileNames.length; i++) {
+						var writeDir;
+						if(err) {
+							logging(err, 3);
+						}
+						if(dir === 'custom/static') {
+							writeDir = 'deploy/'
+						}
+						else {
+							logging('Directory to write to: ' + dir.substring(searchDirectories[2].length, dir.length-1), 6);
+							writeDir =  'deploy' + dir.substring(searchDirectories[2].length, dir.length-1) + '/';
+							var folderExists = fs.existsSync(writeDir);
+							if(!folderExists) {
+								fs.mkdirSync(writeDir);
+							}
+						}
+						logging(writeDir + fileNames[i], 6);
+						logging('FileName: ' + JSON.stringify(fileNames[i]), 7);
+						var data = fs.readFileSync(dir + '/' + fileNames[i]);
+						fs.writeFileSync(writeDir + fileNames[i], data);
+					}
+					//logging('Loading file ' + one + '/' + three, 7);
+				});
+				cb(null, null);
 			}
 		], 
 		function(err, results) {
-			//logging('Javascript contents: ' + jsPageText, 7);
-			//logging('CSS contents: ' + cssPageText, 7);
+			logging('html contents:' + pageText, 7);
+			logging('Javascript contents: ' + jsPageText, 7);
+			logging('CSS contents: ' + cssPageText, 7);
 			
 			fs.writeFileSync('./deploy/' + view + '.html', pageText);
-			fs.writeFileSync('./deploy/js/' + view + '-includes.js', jsPageText);
-			fs.writeFileSync('./deploy/css/' + view + '-includes.css', cssPageText);
+			fs.writeFileSync('./deploy/js/' + view + '-includes.js.temp', jsPageText);
+			fs.writeFileSync('./deploy/css/' + view + '-includes.css.temp', cssPageText);
+
+			new compressor.minify({
+			    type: 'gcc',
+			    fileIn: './deploy/js/' + view + '-includes.js.temp',
+			    fileOut: './deploy/js/' + view + '-includes.js',
+			    callback: function(err, min){
+			    	if(err) {
+			    		logging(err, 3);
+			    	}
+			    	fs.unlinkSync('./deploy/js/' + view + '-includes.js.temp');
+			    }
+			});
+
+			new compressor.minify({
+			    type: 'yui-css',
+			    fileIn: './deploy/css/' + view + '-includes.css.temp',
+			    fileOut: './deploy/css/' + view + '-includes.css',
+			    callback: function(err, min){
+			    	if(err) {
+			    		logging(err, 3);
+			    	}
+			    	fs.unlinkSync('./deploy/css/' + view + '-includes.css.temp');
+			    }
+			});
 
 		});
 	});

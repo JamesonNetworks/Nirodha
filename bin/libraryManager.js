@@ -49,14 +49,14 @@ getLibraryContents = function(uri, callback) {
 	var found = false;
 	var type;
 	logging('Entering getLibraryContents...', 7);
-	logging(JSON.stringify(Libraries));
+	logging(JSON.stringify(Libraries), 7);
 	for(var i = 0; i < Libraries.length; i++) {
 		for(var k = 0; k < Libraries[i].length; k++) {
 			//logging(Libraries[i][k].fileNames, 7);
 			if(Libraries[i][k].fileNames.indexOf(uri) > -1) {
 				var path  = Libraries[i][k].dir + '/' + uri;
 				var pageText = fs.readFileSync(path).toString();
-				logging('Writing file from path: ' + path);
+				logging('Writing file from path: ' + path, 7);
 				callback(pageText, true);
 			}
 		}
