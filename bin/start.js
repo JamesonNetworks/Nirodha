@@ -4,38 +4,12 @@ var fs = require('fs');
 var path = require('path');
 var settings = require('../settings.json');
 var async = require('async');
-//var index = fs.readFileSync('index.html');
 
-var rootSearchDirectories = [];
-var librarySearchDirectories = [];
+var searchDirectories = [];
 
 var NOT_FOUND = 'There is no view or library file which corresponds to the request';
 
-// // Walk a directory structure for all files inside of the structure
-// var walk = function(dir, done) {
-//   var results = [];
-//   fs.readdir(dir, function(err, list) {
-//     if (err) return done(err);
-//     var i = 0;
-//     (function next() {
-//       var file = list[i++];
-//       if (!file) return done(null, results);
-//       file = dir + '/' + file;
-//       fs.stat(file, function(err, stat) {
-//         if (stat && stat.isDirectory()) {
-//           walk(file, function(err, res) {
-//             results = results.concat(res);
-//             next();
-//           });
-//         } else {
-//           results.push(file);
-//           next();
-//         }
-//       });
-//     })();
-//   });
-// };
-
+// Method to get all files in directories
 var walkSync = function (start, callback) {
   var stat = fs.statSync(start);
 
@@ -66,107 +40,71 @@ var walkSync = function (start, callback) {
   }
 };
 
-var loadModules = function(moduleExtension, loadModuleCallback) {
-	logging('Entering load modules...', 7);
+// Filters
+var isHtmlFile = function(element) {
+	return element.indexOf('.html') > 0;
+}
 
-	var searchOptions = {};
-	searchOptions.directoryIsRoot = true;
-	searchOptions.directories = [];
+var isJsFile = function(element) {
+	return element.indexOf('.js' > 0);
+}
 
-	switch(moduleExtension) {
-		case 'html':
-			searchOptions.directories = rootSearchDirectories;
-			logging('Search Options based on extension:' + JSON.stringify(searchOptions), 7);
-		break;
-		default:
-			searchOptions.directories = librarySearchDirectories;
-			searchOptions.directoryIsRoot = false;
-			logging('Search Options based on extension:' + JSON.stringify(searchOptions), 7);
-		break;
-	}
-
-	var files;
-
-	async.series([
-		function(callback) {
-			files = [];
-			// Export all of the possible routes based on the views present in the Nirodha project
-			// Get a list of all the thtml files in the root of the project
-			if(searchOptions.directoryIsRoot) {
-				var dir = searchOptions.directories[0];
-				rootFiles = fs.readdirSync(dir);
-
-				logging('Root files: ' + rootFiles,7);
-				files.push({"fileNames": rootFiles.toString().split(','), "dir": "." });
-				//logging('Files from fs.readdirSync: ' + files, 7);
-
-				callback(null, files);
-			}
-			else {
-				for(var index in searchOptions.directories) {
-					var directory = searchOptions.directories[index];
-					walkSync(directory, function(dir, directories, fileNames) {
-						files.push({ "fileNames": name, "dir": dir});
-						//logging('Loading file ' + one + '/' + three, 7);
-					});
-
-					if(index == searchOptions.directories.length-1) {
-						callback(null, files);
-					}
-				}
-			}
-		},
-		function(callback) {
-			var fileListResult = [];
-			for(var i = 0; i < files.length; i++) {
-				//logging('Checking ' + files[i] + ' for proper extension (' + moduleExtension + '), Add it?: ' + (files[i].split('.')[files[i].split('.').length-1] === moduleExtension));
-				logging('Files is ' + JSON.stringify(files));
-				if(files[i].fileNames.split('.')[files[i].fileNames.split('.').length-1] === moduleExtension) {
-					// Add the files to the list of files
-					fileListResult.push({});
-				}
-			}
-			console.log('The following files with type ' + moduleExtension + ' have been loaded:');
-			for(var i = 0; i < fileListResult.length; i++) {
-				console.log(fileListResult[i]);
-			}
-
-			callback(null, fileListResult)
-		}
-		], loadModuleCallback);
+var isCssFile = function(element) {
+	return element.indexOf('.css' > 0);
 }
 
 module.exports = function (args) {
 	// Set up search
-	rootSearchDirectories.push('.');
-	librarySearchDirectories.push('./custom');
-	librarySearchDirectories.push(settings.path_to_nirodha + 'libs');
+	searchDirectories.push('./custom');
+	searchDirectories.push(settings.path_to_nirodha + 'libs');
 
-	logging('Entering module loading...', 7);
+	var htmlFiles = fs.readdirSync('.').toString().split(',').filter(isHtmlFile);
+
+	// Start by searching the custom directories
 	async.series([
-		function(cb) {
-			logging('Entering html file loader', 7);
-			logging('File loader callback: ' + cb, 7);
-			loadModules('html',cb);
+		function(callback) {
+			var files = [];
+			walkSync(searchDirectories[0], function(dir, directories, fileNames) {
+				files.push({ "fileNames": fileNames, "dir": dir});
+				//logging('Loading file ' + one + '/' + three, 7);
+			});
+			callback(null, files);
 		},
-		function(cb) {
-			loadModules('js', cb);
-		},
-		function(cb) {
-			loadModules('css', cb);
+		function(callback) {
+			var files = [];
+			walkSync(searchDirectories[1], function(dir, directories, fileNames) {
+				files.push({ "fileNames": fileNames, "dir": dir});
+				//logging('Loading file ' + one + '/' + three, 7);
+			});
+			callback(null, files);
 		}
-		], function(err, results) {
-			if(err) {
-				logging(err, 3);
-			}
-			//logging('The results from loading: ' + JSON.stringify(results), 7);
-			var htmlFiles = results[0][1]; 
-			var jsFiles = results[1][1];
-			var cssFiles = results[2][1];
+		],
+		function (err, libraries) {
 
-			// logging('htmlFiles: ' + htmlFiles, 7);
-			// logging('jsFiles: ' + jsFiles, 7);
-			// logging('cssFiles: ' + cssFiles, 7);
+			logging('HTML Files loaded: ' + JSON.stringify(htmlFiles), 7);
+			logging('Files in ' + searchDirectories[0] + ': ' + JSON.stringify(libraries[0]), 7);
+			logging('Files in ' + searchDirectories[1] + ': ' + JSON.stringify(libraries[1]), 7);
+
+			var jsFiles = "";
+
+			var findJsFiles = function(resultFileList) {
+				var returnableJsFiles = "";
+				for(var i = 0; i < resultFileList.length; i++) {
+					//logging('Result files list: ' + resultFileList[i], 7);
+					if(resultFileList[i].fileNames.filter(isJsFile).length > 0) {
+						logging('Js files are : ' + resultFileList[i].fileNames.filter(isJsFile), 7);
+						returnableJsFiles += ',' + resultFileList[i].fileNames.filter(isJsFile).toString();
+					}
+				}
+				return returnableJsFiles;
+			}
+
+			jsFiles = findJsFiles(libraries[0]);
+			jsFiles += findJsFiles(libraries[1]);
+			logging('JS files is : ' + jsFiles, 7);
+			jsFiles = jsFiles.split(',');
+
+			console.log('Found the following list of JS files in Nirodha paths: ' + JSON.stringify(jsFiles));
 
 			logging('Creating server ...');
 			http.createServer(function (req, res) {
@@ -179,9 +117,12 @@ module.exports = function (args) {
 					// Parse the request url
 					var URI = req.url.substring(1, req.url.length);
 					logging('Requested URI is: ' + URI, 7);
+					logging('Index of html in uri: ' + (URI.indexOf('html') > 0), 7);
 					if(URI.indexOf('html') > 0) {
+						logging('HtmlFiles length: ' + htmlFiles.length);
 						for(var i = 0; i < htmlFiles.length; i++) {
-							if(htmlFiles[i].name === URI) {
+							logging('Comparing ' + htmlFiles[i] + ' to ' + URI);
+							if(htmlFiles[i] === URI) {
 								logging('A matching view for ' + req.url + ' has been found, reading and serving the page...');
 
 								// Get a handle to a VM object
@@ -200,11 +141,19 @@ module.exports = function (args) {
 						}
 					}
 					// Look for a static library matching the request
-					else if(false) {
+					else if(URI.indexOf('js') > 0 || URI.indexOf('css') > 0) {
+						// Get a handle to a LM object
+						var lm = require('./libraryManager.js');
+
+						lm.init(libraries);
+
 						// Make sure to loop through all directories which could have js or css files
-
 						logging('A matching library for ' + req.url + ' has been found, reading and serving the page...');
+						logging('TODO: Implement serving logic');
 
+						logging('Sending fake not found: ' + NOT_FOUND + ' ' + req.url);
+						res.writeHead(404, {'Content-Type': 'text/plain'});
+						res.end(NOT_FOUND + ' ' + req.url);
 					}
 					else {
 
@@ -222,7 +171,7 @@ module.exports = function (args) {
 					// FINALLY Serve the matching asset in the response
 				}
 			}).listen(10080);
-	})
+	});
 
 
 	//var templateFiles = loadModules('thtml');
