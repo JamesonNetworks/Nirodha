@@ -18,7 +18,8 @@ var mimeTypes = {
     "png": "image/png",
     "js": "text/javascript",
     "css": "text/css",
-    "gif": "image/gif"
+    "gif": "image/gif",
+    "ico": "image/gif"
 }
 
 var searchDirectories = [];
@@ -246,7 +247,7 @@ module.exports = function (args) {
 
 					// FINALLY Serve the matching asset in the response
 				}
-			}).listen(8070);
+			}).listen(80);
 	});
 
 
