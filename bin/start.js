@@ -19,7 +19,8 @@ var mimeTypes = {
     "js": "text/javascript",
     "css": "text/css",
     "gif": "image/gif",
-    "ico": "image/gif"
+    "ico": "image/gif",
+    "svg": "image/svg+xml"
 }
 
 var searchDirectories = [];
