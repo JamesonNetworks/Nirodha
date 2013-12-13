@@ -105,6 +105,7 @@ ViewManager.prototype.parse = function(res) {
 		logging('Inserting the following css results: ' + results[1]);
 		logging('Inserting the templates for ' + results[2].template_filename  + '...');
 		logging('Inserting the following templates: ' + results[2].template_text, 7);
+		
 		res.end(firstPartOfPage + results[2].template_text + results[0].toString() + results[1].toString() + lastPartOfPage);
 	});
 /*
