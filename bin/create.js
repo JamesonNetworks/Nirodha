@@ -27,19 +27,34 @@ function copyFile(source, target, cb) {
   }
 }
 
-function createNirodhaView(viewname) {
+function createNirodhaView(viewname, optdirectory) {
+	var dir;
+	if(optdirectory) {
+		dir = optdirectory;
+		copyFile(settings.path_to_nirodha + 'tmpl/newproject.default.json', dir + 'info.json', function(err) {
+		if(err) {
+			logging('Problem copying default json information: ' + err, 0);
+		}
+		else {
+			logging('Successfully created info.json');
+		}
+	});
+	}
+	else {
+		dir = './';
+	}
 	// Copy in the default view
-	copyFile(settings.path_to_nirodha + 'tmpl/defaultView.thtml', './' + viewname + '.html', function(err) {
+	copyFile(settings.path_to_nirodha + 'tmpl/defaultView.html', dir + viewname + '.html', function(err) {
 		if(err) {
 			logging('Problem copying default view: ' + err, 0);
 		}
 		else {
-			logging('Successfully created ' + viewname + '.thtml');
+			logging('Successfully created ' + viewname + '.html');
 		}
 	});
 
 	// Copy in the default javascript
-	copyFile(settings.path_to_nirodha + 'tmpl/defaultView.js', './custom/js/' + viewname + '.js', function(err) {
+	copyFile(settings.path_to_nirodha + 'tmpl/defaultView.js', dir + 'custom/js/' + viewname + '.js', function(err) {
 		if(err) {
 			logging('Problem copying default js: ' + err, 0);
 		}
@@ -49,7 +64,7 @@ function createNirodhaView(viewname) {
 	});
 
 	// Copy in the default css
-	copyFile(settings.path_to_nirodha + 'tmpl/defaultView.css', './custom/css/' + viewname + '.css', function(err) {
+	copyFile(settings.path_to_nirodha + 'tmpl/defaultView.css', dir + 'custom/css/' + viewname + '.css', function(err) {
 		if(err) {
 			logging('Problem copying default css: ' + err, 0);
 		}
@@ -59,12 +74,22 @@ function createNirodhaView(viewname) {
 	});
 
 	// Copy in the default json accessories
-	copyFile(settings.path_to_nirodha + 'tmpl/defaultView.json', './' + viewname + '.json', function(err) {
+	copyFile(settings.path_to_nirodha + 'tmpl/defaultView.json', dir + viewname + '.json', function(err) {
 		if(err) {
 			logging('Problem copying default css: ' + err, 0);
 		}
 		else {
 			logging('Successfully created ' + viewname + '.json');
+		}
+	});
+
+	// Copy in the default view templates
+	copyFile(settings.path_to_nirodha + 'tmpl/defaultView_templates.html', dir + 'custom/templates/' + viewname + '_templates.html', function(err) {
+		if(err) {
+			logging('Problem copying default view: ' + err, 0);
+		}
+		else {
+			logging('Successfully created ' + viewname + '.html');
 		}
 	});
 }
@@ -91,68 +116,19 @@ module.exports = function (args) {
 			logging('Error creating directory, it already exists!', 0);
 		}
 		else {
-			dirName = './' + args[0];
+			dirName = './' + args[0] + '/';
 			logging('Creating directory: ' + dirName, 7);
 			fs.mkdirSync(dirName);
-			fs.mkdirSync(dirName + '/custom');
-			fs.mkdirSync(dirName + '/custom/js');
-			fs.mkdirSync(dirName + '/custom/css');
-			fs.mkdirSync(dirName + '/custom/templates');
-			fs.mkdirSync(dirName + '/deploy');
-			fs.mkdirSync(dirName + '/deploy/js');
-			fs.mkdirSync(dirName + '/deploy/css');
-
-			viewname = 'index';
+			fs.mkdirSync(dirName + 'custom');
+			fs.mkdirSync(dirName + 'custom/js');
+			fs.mkdirSync(dirName + 'custom/css');
+			fs.mkdirSync(dirName + 'custom/templates');
+			fs.mkdirSync(dirName + 'deploy');
+			fs.mkdirSync(dirName + 'deploy/js');
+			fs.mkdirSync(dirName + 'deploy/css');
+			fs.mkdirSync(dirName + 'custom/static');
 			
-			// Copy in the default view
-			copyFile(settings.path_to_nirodha + 'tmpl/defaultView.thtml', './' + args[0] + '/' + viewname + '.html', function(err) {
-				if(err) {
-					logging('Problem copying default view: ' + err, 0);
-				}
-				else {
-					logging('Successfully created ' + viewname + '.thtml');
-				}
-			});
-
-			// Copy in the default javascript
-			copyFile(settings.path_to_nirodha + 'tmpl/defaultView.js', './' + args[0] + '/custom/js/' + viewname + '.js', function(err) {
-				if(err) {
-					logging('Problem copying default js: ' + err, 0);
-				}
-				else {
-					logging('Successfully created ' + viewname + '.js');
-				}
-			});
-
-			// Copy in the default css
-			copyFile(settings.path_to_nirodha + 'tmpl/defaultView.css', './' + args[0] + '/custom/css/' + viewname + '.css', function(err) {
-				if(err) {
-					logging('Problem copying default css: ' + err, 0);
-				}
-				else {
-					logging('Successfully created ' + viewname + '.css');
-				}
-			});
-
-			// Copy in the default json accessories
-			copyFile(settings.path_to_nirodha + 'tmpl/defaultView.json', './' + args[0] + '/' + viewname + '.json', function(err) {
-				if(err) {
-					logging('Problem copying default css: ' + err, 0);
-				}
-				else {
-					logging('Successfully created ' + viewname + '.json');
-				}
-			});
-
-			// Copy in the default Nirodha description file
-			copyFile(settings.path_to_nirodha + 'tmpl/newproject.default.json', './' + args[0] + '/' + 'info.json', function(err) {
-				if(err) {
-					logging('Problem copying default new project settings: ' + err, 0);
-				}
-				else {
-					logging('Successfully created ' + dirName + '.json');
-				}
-			});
+			createNirodhaView('index', dirName);
 		}
 	}
 }

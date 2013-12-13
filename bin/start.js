@@ -198,14 +198,24 @@ module.exports = function (args) {
 						var stats;
 
 						logging('Attempting to serve a static asset matching ' + uri);
-						logging('Using ' + filename + ' as filename...', 7)
+						logging('Using ' + filename + ' as filename...', 7);
 						try {
 						 	stats = fs.lstatSync(filename); // throws if path doesn't exist
 						} catch (e) {
-							res.writeHead(404, {'Content-Type': 'text/plain'});
-							res.write('404 Not Found\n');
-							res.end();
-							return;
+							filename = path.join(process.cwd() + '/static/', unescape(uri));
+							logging('No matching asset found in project custom directory...');
+							logging('Attempting to serve a static asset matching from libs ' + uri);
+							logging('Using ' + filename + ' as filename...', 7);
+
+							try {
+							 	stats = fs.lstatSync(filename); // throws if path doesn't exist
+							} catch (e) {
+								res.writeHead(404, {'Content-Type': 'text/plain'});
+								res.write('404 Not Found\n');
+								res.end();
+								return;
+							}
+
 						}
 
 
