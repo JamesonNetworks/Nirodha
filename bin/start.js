@@ -6,6 +6,7 @@ var settings = require('../settings.json');
 var async = require('async');
 var constants = require('./constants.js');
 var url = require('url');
+var utils = require('./utilities.js');
 
 // Handle to library manager
 var lm = require('./libraryManager.js');
@@ -26,51 +27,14 @@ var mimeTypes = {
 var searchDirectories = [];
 
 // Method to get all files in directories
-var walkSync = function (start, callback) {
-  var stat = fs.statSync(start);
-
-  if (stat.isDirectory()) {
-    var filenames = fs.readdirSync(start);
-
-    var coll = filenames.reduce(function (acc, name) {
-      var abspath = path.join(start, name);
-
-      if (fs.statSync(abspath).isDirectory()) {
-        acc.dirs.push(name);
-      } else {
-        acc.names.push(name);
-      }
-
-      return acc;
-    }, {"names": [], "dirs": []});
-
-    callback(start, coll.dirs, coll.names);
-
-    coll.dirs.forEach(function (d) {
-      var abspath = path.join(start, d);
-      walkSync(abspath, callback);
-    });
-
-  } else {
-    throw new Error("path: " + start + " is not a directory");
-  }
-};
+var walkSync = utils.walkSync;
 
 // Filters
-var isHtmlFile = function(element) {
-	//logging(element + ', Is this a HTML file? ' + (element.indexOf('.html') > 0));
-	return element.indexOf('.html') > 0;
-}
+var isHtmlFile = utils.isHtmlFile;
 
-var isJsFile = function(element) {
-	//logging(element + ', Is this a JS file? ' + (element.indexOf('.js') > 0));
-	return element.indexOf('.js') > 0;
-}
+var isJsFile = utils.isJsFile;
 
-var isCssFile = function(element) {
-	//logging(element + ', Is this a CSS file? ' + (element.indexOf('.css') > 0));
-	return element.indexOf('.css') > 0;
-}
+var isCssFile = utils.isCssFile;
 
 module.exports = function (args) {
 	// Set up search

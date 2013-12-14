@@ -108,16 +108,4 @@ ViewManager.prototype.parse = function(res) {
 		
 		res.end(firstPartOfPage + results[2].template_text + results[0].toString() + results[1].toString() + lastPartOfPage);
 	});
-/*
-*	Parse the templates included in the thtml
-*/
-
-	// TODO: Add support for templates
-	// Locate the include section for templates
-	// var startOfTemplates = pageText.indexOf(TEMPLATES);
-	// var endOfTemplates = pageText.indexOf(startOfTemplates + TEMPLATES.length);
-	// logging('Templates include Start: ' + startOfTemplates, 7);
-	// logging('Templates include End: ' + endOfTemplates, 7);
-
-	// return firstPartOfPage + lastPartOfPage;
 }
