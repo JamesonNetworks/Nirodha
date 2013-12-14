@@ -128,8 +128,8 @@ async.series([
 
 		// Get the page text for the view by removing the .html portion of the request and parsing the view
 		var pageText = fs.readFileSync(view + '.html').toString();
-		var jsPageText;
-		var cssPageText;
+		var jsPageText = '';
+		var cssPageText = '';
 
 		// TODO: Fix this includes
 		var includes = JSON.parse(fs.readFileSync(view + '.json').toString());
@@ -162,7 +162,14 @@ async.series([
 				for(var i = 0; i < jsfiles.length; i++) {
 
 					logging('Inserting the following js library: ' + jsfiles[i], 7)
-					jsPageText += lm.getLibraryContentsAsString(jsfiles[i]);
+					lm.getLibraryContentsAsString(jsfiles[i], function(result, found) {
+						logging('Found ' + jsfiles[i] + '? ' + found, 7);
+						//logging('File contents: ' + result, 7);
+						if(found) {
+							jsPageText += result + '\n';
+							//logging('jsPageText so far: ' + jsPageText, 7);
+						}
+					});
 
 					if(i == jsfiles.length-1) {
 						cb(null, null);
@@ -181,7 +188,14 @@ async.series([
 
 				for(var i = 0; i < cssfiles.length; i++) {
 					logging('Inserting the following css library: ' + cssfiles[i], 7);
-					cssPageText += lm.getLibraryContentsAsString(cssfiles[i]);
+					lm.getLibraryContentsAsString(cssfiles[i], function(result, found) {
+						logging('Found ' + cssfiles[i] + '? ' + found, 7);
+						//logging('File contents: ' + result, 7);
+						if(found) {
+							cssPageText += result + '\n';
+							//logging('jsPageText so far: ' + jsPageText, 7);
+						}
+					});
 
 					if(i == cssfiles.length-1) {
 						cb(null, null);
@@ -200,8 +214,8 @@ async.series([
 			}
 		], 
 		function(err, results) {
-			logging('Javascript contents: ' + jsPageText, 7);
-			logging('CSS contents: ' + cssPageText, 7);
+			//logging('Javascript contents: ' + jsPageText, 7);
+			//logging('CSS contents: ' + cssPageText, 7);
 			
 			fs.writeFileSync('./deploy/' + view + '.html', pageText);
 			fs.writeFileSync('./deploy/js/' + view + '-includes.js', jsPageText);

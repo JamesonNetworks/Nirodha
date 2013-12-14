@@ -25,7 +25,7 @@ Debug (level 7)
 The lowest priority, and normally not logged except for messages from the kernel.
 */
 
-var currentLevel = 6;
+var currentLevel = 7;
 
 module.exports = function(statement, level) {
 	if(level == null) {

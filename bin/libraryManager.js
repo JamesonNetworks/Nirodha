@@ -45,42 +45,32 @@ LibraryManager.prototype.init = function(libraries, jsfiles, cssfiles) {
 	logging('Libraries contained in current lm: ' + JSON.stringify(Libraries), 7);
 }
 
-LibraryManager.prototype.getLibraryContents = function(uri, callback) {
+getLibraryContents = function(uri, callback) {
 	var found = false;
 	var type;
-	logging('Entering serveLibrary...', 7);
-	if(found) {
-		for(var i = 0; i < Libraries.length; i++) {
-			for(var k = 0; k < Libraries[i].length; k++) {
-				if(Libraries[i][k].fileNames.indexOf(uri) > -1) {
-					var path  = Libraries[i][k].dir + '/' + uri;
-					var pageText = fs.readFileSync(path).toString();
-					logging('Writing file from path: ' + path);
-					callback(pageText, true);
-
-				}
+	logging('Entering getLibraryContents...', 7);
+	logging(JSON.stringify(Libraries));
+	for(var i = 0; i < Libraries.length; i++) {
+		for(var k = 0; k < Libraries[i].length; k++) {
+			//logging(Libraries[i][k].fileNames, 7);
+			if(Libraries[i][k].fileNames.indexOf(uri) > -1) {
+				var path  = Libraries[i][k].dir + '/' + uri;
+				var pageText = fs.readFileSync(path).toString();
+				logging('Writing file from path: ' + path);
+				callback(pageText, true);
 			}
 		}
 	}
-	else {
-		callback(null, false);
-	}
 }
 
-LibraryManager.prototype.getLibraryContentsAsString = function(uri) {
-	return LibraryManager.prototype.getLibraryContents(uri, function(pageText, found) {
-		if(found) {
-			return pageText;
-		}
-		else {
-			return '';
-		}
-	});
+LibraryManager.prototype.getLibraryContentsAsString = function(uri, callback) {
+	getLibraryContents(uri, callback);
 }
 
 // Accepts a response object and parses a view into it
 LibraryManager.prototype.serveLibrary = function(uri, res) {
-	LibraryManager.prototype.getLibraryContents(uri, function(pageText, found) {
+	var type = uri.indexOf('js') > 0 ? 'js' : 'css';
+	getLibraryContents(uri, function(pageText, found) {
 		if(found) {
 			if(type === 'js') {
 				res.writeHead(200, {
