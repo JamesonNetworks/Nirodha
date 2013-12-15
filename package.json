@@ -7,7 +7,7 @@
   "dependencies": {
     "async": "0.2.x",
     "commander": "2.0.x",
-    "node-minify": "0.2.x"
+    "node-minify": "0.8.x"
   },
   "devDependencies": {
   },

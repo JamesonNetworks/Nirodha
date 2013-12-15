@@ -261,6 +261,7 @@ async.series([
 			    fileOut: './deploy/js/' + view + '-includes.js',
 			    callback: function(err, min){
 			    	if(err) {
+			    		logging('Calling error for minifying ' + './deploy/js/' + view + '-includes.js.temp', 3);
 			    		logging(err, 3);
 			    	}
 			    	fs.unlinkSync('./deploy/js/' + view + '-includes.js.temp');
@@ -273,7 +274,8 @@ async.series([
 			    fileOut: './deploy/css/' + view + '-includes.css',
 			    callback: function(err, min){
 			    	if(err) {
-			    		logging(err, 3);
+			    		logging('Calling error for minifying ' + './deploy/css/' + view + '-includes.css.temp', 3);
+			    		logging(JSON.stringify(err), 3);
 			    	}
 			    	fs.unlinkSync('./deploy/css/' + view + '-includes.css.temp');
 			    }
