@@ -229,8 +229,8 @@ async.series([
 							writeDir = 'deploy/'
 						}
 						else {
-							logging('Directory to write to: ' + dir.substring(searchDirectories[2].length, dir.length-1), 6);
-							writeDir =  'deploy' + dir.substring(searchDirectories[2].length, dir.length-1) + '/';
+							logging('Directory to write to: ' + dir.substring(searchDirectories[2].length, dir.length), 6);
+							writeDir =  'deploy' + dir.substring(searchDirectories[2].length, dir.length) + '/';
 							var folderExists = fs.existsSync(writeDir);
 							if(!folderExists) {
 								fs.mkdirSync(writeDir);
