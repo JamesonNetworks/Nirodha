@@ -8,8 +8,8 @@ var compressor = require('node-minify');
 // Handle to library manager
 var lm = require('./libraryManager.js');
 
-var INCLUDES = new String('{includes}');
-var TEMPLATES = new String('{templates}');
+var TEMPLATE_KEY = new String('{templates}');
+
 var scriptStart = '<script type="text/javascript" src="';
 var scriptEnd = '"></script>\n';
 
@@ -49,8 +49,130 @@ DeployManager.prototype.init = function(pView) {
 	view = pView;
 }
 
+function generateJsAndCSSForIncludeSection(text, libobject, view, callback) {
+	logging('In generateJsAndCSSForIncludeSection...', 6);
+	var firstPartOfPage = text.substring(0, text.indexOf(libobject.title));
+	var lastPartOfPage = text.substring(text.indexOf(libobject.title) + libobject.title.length, text.length);
+
+	var jsPageText = '';
+	var cssPageText = '';
+
+	var title = libobject.title.substring(1, libobject.title.length-1);
+
+	logging('Title: ' + title);
+
+	async.series([
+		// Insert js files
+		function(cb) {
+			logging('Entering loop to add js libraries', 7);
+
+			var jsfiles = libobject.libs.js;
+			logging('JS Library lengths: ' + jsfiles.length, 7);
+			// Insert references to the new js library files
+			var jsincludes = "";
+
+			jsincludes = (scriptStart + '/js/' + view  + '-' + title + '.js' + scriptEnd);
+			lastPartOfPage = jsincludes + lastPartOfPage;
+
+			if(jsfiles.length === 0) {
+				cb(null, null);
+			}
+			else {
+				for(var i = 0; i < jsfiles.length; i++) {
+
+					logging('Inserting the following js library: ' + jsfiles[i], 7)
+					lm.getLibraryContentsAsString(jsfiles[i], function(result, found) {
+						logging('Found ' + jsfiles[i] + '? ' + found, 7);
+						//logging('File contents: ' + result, 7);
+						if(found) {
+							jsPageText += result + '\n';
+							//logging('jsPageText so far: ' + jsPageText, 7);
+						}
+					});
+
+					if(i == jsfiles.length-1) {
+						cb(null, null);
+					}
+				}
+			}
+		},
+		//Insert css files
+		function(cb) {
+			logging('Entering loop to add css libraries', 7);
+			// Insert references to the new css library files
+			var cssincludes = "";
+
+			var cssfiles = libobject.libs.css;
+			logging('CSS Library length: ' + cssfiles.length, 7);
+
+			cssincludes = (styleStart + '/css/' + view + '-' + title + '.css' + styleEnd);
+			lastPartOfPage = cssincludes + lastPartOfPage;
+
+			if(cssfiles.length === 0) {
+				cb(null, null);
+			}
+			else {
+				for(var i = 0; i < cssfiles.length; i++) {
+					logging('Inserting the following css library: ' + cssfiles[i], 7);
+					lm.getLibraryContentsAsString(cssfiles[i], function(result, found) {
+						logging('Found ' + cssfiles[i] + '? ' + found, 7);
+						//logging('File contents: ' + result, 7);
+						if(found) {
+							cssPageText += result + '\n';
+							//logging('jsPageText so far: ' + jsPageText, 7);
+						}
+					});
+
+					if(i == cssfiles.length-1) {
+						cb(null, null);
+					}
+				}
+			}
+		}
+	], 
+	function(err, results) {
+		// Write the files out
+		fs.writeFileSync('./deploy/js/' + view + '-' + title + '.js.temp', jsPageText);
+		fs.writeFileSync('./deploy/css/' + view + '-' + title + '.css.temp', cssPageText);
+
+		// Minify the files
+		new compressor.minify({
+		    type: 'gcc',
+		    fileIn: './deploy/js/' + view + '-' + title + '.js.temp',
+		    fileOut: './deploy/js/' + view + '-' + title + '.js',
+		    callback: function(err, min){
+		    	if(err) {
+		    		logging('Calling error for minifying ' + './deploy/js/' + view + '-' + title + '.js.temp', 3);
+		    		logging(err, 3);
+		    	}
+		    	fs.unlinkSync('./deploy/js/' + view + '-' + title + '.js.temp');
+		    }
+		});
+
+		new compressor.minify({
+		    type: 'yui-css',
+		    fileIn: './deploy/css/' + view + '-' + title + '.css.temp',
+		    fileOut: './deploy/css/' + view + '-' + title + '.css',
+		    callback: function(err, min){
+		    	if(err) {
+		    		logging('Calling error for minifying ' + './deploy/css/' + view + '-' + title + '.css.temp', 3);
+		    		logging(JSON.stringify(err), 3);
+		    	}
+		    	fs.unlinkSync('./deploy/css/' + view + '-' + title + '.css.temp');
+		    }
+		});
+
+		callback(firstPartOfPage + lastPartOfPage);
+	});
+}
+
+
 // Accepts a response object and parses a view into it
 DeployManager.prototype.deploy = function(view) {
+
+if(!view) {
+	throw Error('No view specified!');
+}
 
 // Set up search
 searchDirectories.push('./custom');
@@ -130,157 +252,92 @@ async.series([
 
 		// Get the page text for the view by removing the .html portion of the request and parsing the view
 		var pageText = fs.readFileSync(view + '.html').toString();
-		var jsPageText = '';
-		var cssPageText = '';
+		// var jsPageText = '';
+		// var cssPageText = '';
 
 		// TODO: Fix this includes
 		var includes = JSON.parse(fs.readFileSync(view + '.json').toString());
-		var jsfiles = includes.js;
-		var cssfiles = includes.css;
 
-		logging('Included js: ' + JSON.stringify(jsfiles));
+		var addToPageText = function(finalText) {
+			pageText = finalText;
+		}
 
-		// Locate the include section for javascript/css
-		var startOfIncludes = pageText.indexOf(INCLUDES);
-		logging('Includes length: ' + INCLUDES.length, 7);
-		var endOfIncludes = startOfIncludes + INCLUDES.length;
+		// var jsfiles = includes.js;
+		// var cssfiles = includes.css;
 
-		logging('JS/CSS include start: ' + startOfIncludes, 7);
-		logging('JS/CSS include end: ' + endOfIncludes, 7);
-		var firstPartOfPage = pageText.substring(0, startOfIncludes);
-		var lastPartOfPage = pageText.substring(endOfIncludes, pageText.length);
+		// logging('Included js: ' + JSON.stringify(jsfiles));
+
+		// // Locate the include section for javascript/css
+		// var startOfIncludes = pageText.indexOf(INCLUDES);
+		// logging('Includes length: ' + INCLUDES.length, 7);
+		// var endOfIncludes = startOfIncludes + INCLUDES.length;
+
+		// logging('JS/CSS include start: ' + startOfIncludes, 7);
+		// logging('JS/CSS include end: ' + endOfIncludes, 7);
+		// var firstPartOfPage = pageText.substring(0, startOfIncludes);
+		// var lastPartOfPage = pageText.substring(endOfIncludes, pageText.length);
 
 		async.series([
-			// Insert js files
-			function(cb) {
-				logging('Entering loop to add js libraries', 7);
-				logging('JS Library lengths: ' + jsfiles.length, 7);
-				// Insert references to the new js library files
-				var jsincludes = "";
-
-				jsincludes = (scriptStart + '/js/' + view  + '-includes' + '.js' + scriptEnd);
-				lastPartOfPage = jsincludes + lastPartOfPage;
-
-				for(var i = 0; i < jsfiles.length; i++) {
-
-					logging('Inserting the following js library: ' + jsfiles[i], 7)
-					lm.getLibraryContentsAsString(jsfiles[i], function(result, found) {
-						logging('Found ' + jsfiles[i] + '? ' + found, 7);
-						//logging('File contents: ' + result, 7);
-						if(found) {
-							jsPageText += result + '\n';
-							//logging('jsPageText so far: ' + jsPageText, 7);
-						}
-					});
-
-					if(i == jsfiles.length-1) {
-						cb(null, null);
+				// Generate the css and js libraries and minify for each library section
+				function(cb) {
+					for(var i = 0; i < includes.length; i++) {
+						logging('index: ' + i);
+						generateJsAndCSSForIncludeSection(pageText, includes[i], view, addToPageText);
 					}
-				}
-			},
-			//Insert css files
-			function(cb) {
-				logging('Entering loop to add css libraries', 7);
-				logging('CSS Library length: ' + cssfiles.length, 7);
-				// Insert references to the new css library files
-				var cssincludes = "";
+					cb(null, null);
+				},
+				// Add in the templates
+				function(cb) {
+					logging('view is : ' + view);
+					var template_filename = './custom/templates/' + view + '_templates.html'
+					logging('Adding the templates html to the core html file...');
+					logging('Loading the following file: ' + template_filename);
+					var template_text = fs.readFileSync(template_filename).toString();
 
-				cssincludes = (styleStart + '/css/' + view + '-includes' + '.css' + styleEnd);
-				lastPartOfPage = cssincludes + lastPartOfPage;
+					var start = pageText.indexOf(TEMPLATE_KEY);
+					var end  = pageText.indexOf(TEMPLATE_KEY) + TEMPLATE_KEY.length;
+					var firstpart = pageText.substring(0, start);
+					var lastpart = pageText.substring(end, pageText.length);
+					// logging('template text: ' + template_text);
+					pageText = firstpart + template_text + lastpart; 
+					cb(null, null);
+				},
+				//Copy static files
+				function(cb) {
+					walkSync(searchDirectories[2], function(dir, directories, fileNames) {
+						logging('Directory: ' + dir, 7);
+						logging('FileNames: ' + JSON.stringify(fileNames), 7);
 
-				for(var i = 0; i < cssfiles.length; i++) {
-					logging('Inserting the following css library: ' + cssfiles[i], 7);
-					lm.getLibraryContentsAsString(cssfiles[i], function(result, found) {
-						logging('Found ' + cssfiles[i] + '? ' + found, 7);
-						//logging('File contents: ' + result, 7);
-						if(found) {
-							cssPageText += result + '\n';
-							//logging('jsPageText so far: ' + jsPageText, 7);
-						}
-					});
-
-					if(i == cssfiles.length-1) {
-						cb(null, null);
-					}
-				}
-			},
-			//Insert template files
-			function(cb) {
-				var template_filename = './custom/templates/' + view + '_templates.html'
-				logging('Adding the templates html to the core html file...', 7);
-				logging('Loading the following file: ' + template_filename, 7);
-				var template_text = fs.readFileSync(template_filename).toString();
-				firstPartOfPage = firstPartOfPage + template_text;
-				pageText = firstPartOfPage + lastPartOfPage;
-				cb(null, null);
-			},
-			//Copy static files
-			function(cb) {
-				walkSync(searchDirectories[2], function(dir, directories, fileNames) {
-					logging('Directory: ' + dir, 7);
-					logging('FileNames: ' + JSON.stringify(fileNames), 7);
-
-					for(var i = 0; i < fileNames.length; i++) {
-						var writeDir;
-						if(err) {
-							logging(err, 3);
-						}
-						if(dir === 'custom/static') {
-							writeDir = 'deploy/'
-						}
-						else {
-							logging('Directory to write to: ' + dir.substring(searchDirectories[2].length, dir.length), 6);
-							writeDir =  'deploy' + dir.substring(searchDirectories[2].length, dir.length) + '/';
-							var folderExists = fs.existsSync(writeDir);
-							if(!folderExists) {
-								fs.mkdirSync(writeDir);
+						for(var i = 0; i < fileNames.length; i++) {
+							var writeDir;
+							if(err) {
+								logging(err, 3);
 							}
+							if(dir === 'custom/static') {
+								writeDir = 'deploy/'
+							}
+							else {
+								logging('Directory to write to: ' + dir.substring(searchDirectories[2].length, dir.length), 6);
+								writeDir =  'deploy' + dir.substring(searchDirectories[2].length, dir.length) + '/';
+								var folderExists = fs.existsSync(writeDir);
+								if(!folderExists) {
+									fs.mkdirSync(writeDir);
+								}
+							}
+							logging(writeDir + fileNames[i], 6);
+							logging('FileName: ' + JSON.stringify(fileNames[i]), 7);
+							var data = fs.readFileSync(dir + '/' + fileNames[i]);
+							fs.writeFileSync(writeDir + fileNames[i], data);
 						}
-						logging(writeDir + fileNames[i], 6);
-						logging('FileName: ' + JSON.stringify(fileNames[i]), 7);
-						var data = fs.readFileSync(dir + '/' + fileNames[i]);
-						fs.writeFileSync(writeDir + fileNames[i], data);
-					}
-					//logging('Loading file ' + one + '/' + three, 7);
-				});
-				cb(null, null);
-			}
-		], 
-		function(err, results) {
-			logging('html contents:' + pageText, 7);
-			logging('Javascript contents: ' + jsPageText, 7);
-			logging('CSS contents: ' + cssPageText, 7);
-			
-			fs.writeFileSync('./deploy/' + view + '.html', pageText);
-			fs.writeFileSync('./deploy/js/' + view + '-includes.js.temp', jsPageText);
-			fs.writeFileSync('./deploy/css/' + view + '-includes.css.temp', cssPageText);
-
-			new compressor.minify({
-			    type: 'gcc',
-			    fileIn: './deploy/js/' + view + '-includes.js.temp',
-			    fileOut: './deploy/js/' + view + '-includes.js',
-			    callback: function(err, min){
-			    	if(err) {
-			    		logging('Calling error for minifying ' + './deploy/js/' + view + '-includes.js.temp', 3);
-			    		logging(err, 3);
-			    	}
-			    	fs.unlinkSync('./deploy/js/' + view + '-includes.js.temp');
-			    }
-			});
-
-			new compressor.minify({
-			    type: 'yui-css',
-			    fileIn: './deploy/css/' + view + '-includes.css.temp',
-			    fileOut: './deploy/css/' + view + '-includes.css',
-			    callback: function(err, min){
-			    	if(err) {
-			    		logging('Calling error for minifying ' + './deploy/css/' + view + '-includes.css.temp', 3);
-			    		logging(JSON.stringify(err), 3);
-			    	}
-			    	fs.unlinkSync('./deploy/css/' + view + '-includes.css.temp');
-			    }
-			});
-
+						//logging('Loading file ' + one + '/' + three, 7);
+					});
+					cb(null, null);
+				}
+			], 
+			// Write out the final html file
+			function(err, results) {
+				logging('Writing final html file...');
+				fs.writeFileSync('./deploy/' + view + '.html', pageText);
 		});
 	});
 }

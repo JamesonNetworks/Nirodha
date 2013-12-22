@@ -1,9 +1,9 @@
 {
   "name": "nirohda",
   "version": "0.1.0",
-  "description": "Picture management server",
+  "description": "Website deployment software",
   "homepage": "http://www.jamesonnetworks.com",
-  "author": "Brent Jameson <brentjameson@gmail.com>",
+  "author": "Brent Jameson <brent@jamesonnetworks.com>",
   "dependencies": {
     "async": "0.2.x",
     "commander": "2.0.x",
