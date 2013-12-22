@@ -1,8 +1,11 @@
 # Nirodha
-=======
 
-A node.js website builder which compiles and minifies sets of included libraries for quickly building websites
+Nirodha (Pali, Sanskrit; Tibetan 'gog pa) — literally refers to the absence or extinction of a given entity. As the 
+third of the four noble truths, it refers specifically to the cessation of dukkha (suffering) and its causes; it is 
+commonly used as a synonym for nirvana. (from Wikipedia)
 
+A node.js website builder which compiles and minifies sets of included libraries for quickly building websites and
+eliminates the pain of keeping track of javascript and css libraries.
 
 Nirodha is a simple command line application which I've developed to facilitate the quick creation and deployment
 of websites. The main goal of this project is to simplify javascript library management and css inclusion for 
