@@ -150,7 +150,7 @@ module.exports = function (args) {
 						}
 					}
 					// Look for a library matching the request
-					else if(URI.indexOf('js') > 0 || URI.indexOf('css') > 0) {
+					else if(URI.indexOf('.js') > 0 || URI.indexOf('.css') > 0) {
 
 						logging('Handing ' + req.url + ' to the library manager...');
 						lm.serveLibrary(URI, res);
