@@ -1,4 +1,4 @@
-# Nirodha
+# Nirodha [![Build Status](https://secure.travis-ci.org/JamesonNetworks/Nirodha.png)](http://travis-ci.org/JamesonNetworks/Nirodha)
 
 Nirodha (Pali, Sanskrit; Tibetan 'gog pa) — literally refers to the absence or extinction of a given entity. As the 
 third of the four noble truths, it refers specifically to the cessation of dukkha (suffering) and its causes; it is 
