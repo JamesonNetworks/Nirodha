@@ -13,6 +13,12 @@ developing websites quickly.
 
 ## Quick Examples:
 
+### After Installing
+
+There are two steps that need to be taken after installing Nirodha. Copy the settings_template.json file into a settings.json file and set the path to nirodha to the correct path which you have downloaded it to. 
+
+Then add the nirodha directory into your local path so that you can execute the nirodha file from anywhere. Now you can execute the following examples.
+
 ### Creating a new project
 
 ```shell
