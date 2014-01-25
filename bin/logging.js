@@ -25,9 +25,9 @@ Debug (level 7)
 The lowest priority, and normally not logged except for messages from the kernel.
 */
 
-var conf = require('../settings.json');
+var settings = require('../settings.json');
 
-var currentLevel = conf.log_level;
+var currentLevel = settings.log_level;
 
 /**
  * Expose the root.

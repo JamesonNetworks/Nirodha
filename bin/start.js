@@ -7,6 +7,7 @@ var async = require('async');
 var constants = require('./constants.js');
 var url = require('url');
 var utils = require('./utilities.js');
+var settings = require('../settings.json');
 
 // Handle to library manager
 var lm = require('./libraryManager.js');
@@ -222,7 +223,7 @@ module.exports = function (args) {
 
 					// FINALLY Serve the matching asset in the response
 				}
-			}).listen(10080);
+			}).listen(settings.port);
 	});
 
 
