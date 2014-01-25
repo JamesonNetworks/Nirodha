@@ -3,3 +3,5 @@ node_modules/*
 settings.json
 .DS_Store
 npm-debug.log
+test/garbage/*
+coverage/*

@@ -25,9 +25,35 @@ Debug (level 7)
 The lowest priority, and normally not logged except for messages from the kernel.
 */
 
-var currentLevel = 6;
+var settings = require('../settings.json');
 
-module.exports = function(statement, level) {
+var currentLevel = settings.log_level;
+
+/**
+ * Expose the root.
+ */
+
+exports = module.exports = new logger;
+
+/**
+ * Expose `LibraryManager`.
+ */
+
+exports.logger = logger;
+
+function logger() {
+
+}
+
+logger.prototype.setLogLevel = function(level) {
+	currentLevel = level;
+}
+
+logger.prototype.getLogLevel = function() {
+	return currentLevel;
+}
+
+logger.prototype.log = function(statement, level) {
 	if(level == null) {
 		// Default the log level to info
 		level = 6;
