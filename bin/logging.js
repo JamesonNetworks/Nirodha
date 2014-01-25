@@ -26,6 +26,7 @@ The lowest priority, and normally not logged except for messages from the kernel
 */
 
 var settings = require('../settings.json');
+var colors = require('colors');
 
 var currentLevel = settings.log_level;
 
@@ -63,44 +64,44 @@ logger.prototype.log = function(statement, level) {
 		var logStatement = "";
 		switch(level) {
 			case 0:
-				logStatement += "0, EMR: ";
+				logStatement += "[ 0, EMR ] : ";
 				logStatement += statement;
-				console.log(logStatement);
+				console.log(logStatement.red);
 			break;
 			case 1:
-				logStatement += "1, ALT: ";
+				logStatement += "[ 1, ALT ] : ";
 				logStatement += statement;
-				console.log(logStatement);
+				console.log(logStatement.red);
 			break;
 			case 2:
-				logStatement += "2, CRT: ";
+				logStatement += "[ 2, CRT ] : ";
 				logStatement += statement;
-				console.log(logStatement);
+				console.log(logStatement.red);
 			break;
 			case 3:
-				logStatement += "3, ERR: ";
+				logStatement += "[ 3, ERR ] : ";
 				logStatement += statement;
-				console.log(logStatement);
+				console.log(logStatement.red);
 			break;
 			case 4:
-				logStatement += "4, WRN: ";
+				logStatement += "[ 4, WRN ] : ";
 				logStatement += statement;
-				console.log(logStatement);
+				console.log(logStatement.yellow);
 			break;
 			case 5:
-				logStatement += "5, NTC: ";
+				logStatement += "[ 5, NTC ] : ";
 				logStatement += statement;
 				console.log(logStatement);
 			break;
 			case 6:
-				logStatement += "6, INF: ";
+				logStatement += "[ 6, INF ] : ";
 				logStatement += statement;
-				console.log(logStatement);
+				console.log(logStatement.green);
 			break;
 			case 7:
-				logStatement += "7, DBG: ";
+				logStatement += "[ 7, DBG ] : ";
 				logStatement += statement;
-				console.log(logStatement);
+				console.log(logStatement.cyan);
 			break;
 			default:
 				throw new error("Invalid log level submitted! Level: " + level + ", Statement: " + statement);
