@@ -11,9 +11,13 @@ Nirodha is a simple command line application which I've developed to facilitate 
 of websites. The main goal of this project is to simplify javascript library management and css inclusion for 
 developing websites quickly.
 
-## Quick Examples:
+# Installing:
 
-### After Installing
+Clone the repository and run npm install.
+
+# Quick Examples:
+
+### After cloning
 
 There are two steps that need to be taken after installing Nirodha. Copy the settings_template.json file into a settings.json file and set the path to nirodha to the correct path which you have downloaded it to. 
 
@@ -50,14 +54,14 @@ nirodha -d index
 Compiles the index view for deployment. This will take all of the referenced js and css files, put them into one
 consolidated file, and then minify those assets.
 
-## Purpose
+# Purpose
 
 I created Nirodha to be a simple website generator and compiler to eliminate some of the pain in developing client
 side javascript and minifying and deploying the libraries. I didn't want to use source maps, but I did want compiled
 minified js and css on my web server. Using Nirodha, I can manage all of my libraries in one place, make quick 
 references to them in the html view, and deploy all of those files with one command.
 
-## How it works
+# How it works
 
 Nirodha projects will pull js and css files from both the libs folder from the Nirodha libs directory as well as 
 from the custom folder inside each of the projects. By putting all of your js and css files in one of these two
