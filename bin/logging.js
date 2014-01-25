@@ -24,12 +24,8 @@ The lowest priority that you would normally log, and purely informational in nat
 Debug (level 7)
 The lowest priority, and normally not logged except for messages from the kernel.
 */
-
-var settings = require('../settings.json');
 var colors = require('colors');
-
-var currentLevel = settings.log_level;
-
+var currentLevel = 6;
 /**
  * Expose the root.
  */
