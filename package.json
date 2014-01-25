@@ -16,5 +16,8 @@
     "istanbul": "0.2.x",
     "jshint": "2.4.x"
   },
+  "scripts": {
+    "test": "mocha -u tdd test"
+  },
   "engine": "node >= 0.10.x"
 }
