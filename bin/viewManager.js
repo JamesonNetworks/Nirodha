@@ -1,5 +1,5 @@
 var fs = require('fs');
-var logging = require('./logging.js');
+var logger = require('./logging.js');
 var async = require('async');
 
 var scriptStart = '<script type="text/javascript" src="';
@@ -34,8 +34,8 @@ ViewManager.prototype.init = function(pView) {
 
 function insertLibrariesAt(text, libobject, callback) {
 
-	// logging('text dump: ' + JSON.stringify(text));
-	logging('libobject dump: ' + JSON.stringify(libobject));
+	// logger.log('text dump: ' + JSON.stringify(text));
+	logger.log('libobject dump: ' + JSON.stringify(libobject));
 	var start = text.indexOf(libobject.title);
 	var end = start + libobject.title.length;
 	var firstpart = text.substring(0, start);
@@ -47,8 +47,8 @@ function insertLibrariesAt(text, libobject, callback) {
 	async.series([
 		// Insert js files
 		function(cb) {
-			logging('Entering loop to add js libraries', 7);
-			logging('JS Library lengths: ' + jsfiles.length, 7);
+			logger.log('Entering loop to add js libraries', 7);
+			logger.log('JS Library lengths: ' + jsfiles.length, 7);
 			// Insert references to the new js library files
 			var jsincludes = "";
 			if(jsfiles.length === 0) {
@@ -56,7 +56,7 @@ function insertLibrariesAt(text, libobject, callback) {
 			}
 			else {
 				for(var i = 0; i < jsfiles.length; i++) {
-					logging('Inserting the following js library: ' + jsfiles[i], 7)
+					logger.log('Inserting the following js library: ' + jsfiles[i], 7)
 					jsincludes += (scriptStart + jsfiles[i] + scriptEnd);
 					if(i == jsfiles.length-1) {
 						cb(null, jsincludes);
@@ -66,8 +66,8 @@ function insertLibrariesAt(text, libobject, callback) {
 		},
 		//Insert css files
 		function(cb) {
-			logging('Entering loop to add css libraries', 7);
-			logging('CSS Library length: ' + cssfiles.length, 7);
+			logger.log('Entering loop to add css libraries', 7);
+			logger.log('CSS Library length: ' + cssfiles.length, 7);
 			// Insert references to the new css library files
 			var cssincludes = "";
 			if(cssfiles.length === 0) {
@@ -75,7 +75,7 @@ function insertLibrariesAt(text, libobject, callback) {
 			}
 			else {
 				for(var i = 0; i < cssfiles.length; i++) {
-					logging('Inserting the following css library: ' + cssfiles[i], 7);
+					logger.log('Inserting the following css library: ' + cssfiles[i], 7);
 					cssincludes += (styleStart + cssfiles[i] + styleEnd);
 					if(i == cssfiles.length-1) {
 						cb(null, cssincludes);
@@ -85,8 +85,8 @@ function insertLibrariesAt(text, libobject, callback) {
 		}
 	], 
 	function(err, results) {
-		logging('Inserting the following js results: ' + results[0]);
-		logging('Inserting the following css results: ' + results[1]);
+		logger.log('Inserting the following js results: ' + results[0]);
+		logger.log('Inserting the following css results: ' + results[1]);
 		
 		callback(firstpart + results[0].toString() + results[1].toString() + lastpart);
 	});
@@ -113,7 +113,7 @@ ViewManager.prototype.parse = function(res) {
 	async.series([
 		function(cb) {
 			for(var i = 0; i < includes.length; i++) {
-				// logging('index: ' + i + ' , pageText: ' + pageText);
+				// logger.log('index: ' + i + ' , pageText: ' + pageText);
 				insertLibrariesAt(pageText, includes[i], addToPageText);
 			}
 			cb();
@@ -121,8 +121,8 @@ ViewManager.prototype.parse = function(res) {
 		function(cb) {
 			// Add templates in
 			var template_filename = './custom/templates/' + view.substring(0, view.length-5) + '_templates.html'
-			logging('Adding the templates html to the core html file...');
-			logging('Loading the following file: ' + template_filename);
+			logger.log('Adding the templates html to the core html file...');
+			logger.log('Loading the following file: ' + template_filename);
 			var template_text = fs.readFileSync(template_filename).toString();
 
 			var start = pageText.indexOf(TEMPLATE_KEY);

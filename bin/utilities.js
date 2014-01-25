@@ -50,16 +50,16 @@ Util.prototype.walkSync = function (start, callback) {
 
 // Filters
 Util.prototype.isHtmlFile = function(element) {
-	//logging(element + ', Is this a HTML file? ' + (element.indexOf('.html') > 0));
+	//logger.log(element + ', Is this a HTML file? ' + (element.indexOf('.html') > 0));
 	return element.indexOf('.html') > 0;
 }
 
 Util.prototype.isJsFile = function(element) {
-	//logging(element + ', Is this a JS file? ' + (element.indexOf('.js') > 0));
+	//logger.log(element + ', Is this a JS file? ' + (element.indexOf('.js') > 0));
 	return element.indexOf('.js') > 0;
 }
 
 Util.prototype.isCssFile = function(element) {
-	//logging(element + ', Is this a CSS file? ' + (element.indexOf('.css') > 0));
+	//logger.log(element + ', Is this a CSS file? ' + (element.indexOf('.css') > 0));
 	return element.indexOf('.css') > 0;
 }
