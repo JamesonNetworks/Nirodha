@@ -110,16 +110,16 @@ module.exports = function (args) {
 			logger.log('CSS files is : ' + cssFiles, 7);
 			cssFiles = cssFiles.split(',');
 
-			console.log('Found the following HTML files: ' + JSON.stringify(htmlFiles));
-			console.log('Found the following list of JS files in Nirodha paths: ' + JSON.stringify(jsFiles));
-			console.log('Found the following list of CSS files in Nirodha paths: ' + JSON.stringify(cssFiles));
+			logger.log('Found the following HTML files: ' + JSON.stringify(htmlFiles), 5);
+			logger.log('Found the following list of JS files in Nirodha paths: ' + JSON.stringify(jsFiles), 5);
+			logger.log('Found the following list of CSS files in Nirodha paths: ' + JSON.stringify(cssFiles), 5);
 
 			logger.log('Library manager init...');
 			lm.init(libraries, jsFiles, cssFiles);
 
 			logger.log('Creating server ...');
 
-			http.createServer(function (req, res) {
+			var server = http.createServer(function (req, res) {
 				logger.log('req.url: ' + req.url, 7);
 				// 
 				if(req.url) {
@@ -168,13 +168,14 @@ module.exports = function (args) {
 						 	stats = fs.lstatSync(filename); // throws if path doesn't exist
 						} catch (e) {
 							filename = path.join(process.cwd() + '/static/', unescape(uri));
-							logger.log('No matching asset found in project custom directory...');
+							logger.log('No matching asset found in project custom directory...', 4);
 							logger.log('Attempting to serve a static asset matching from libs ' + uri);
 							logger.log('Using ' + filename + ' as filename...', 7);
 
 							try {
 							 	stats = fs.lstatSync(filename); // throws if path doesn't exist
 							} catch (e) {
+								logger.log('No static asset was found...', 4);
 								res.writeHead(404, {'Content-Type': 'text/plain'});
 								res.write('404 Not Found\n');
 								res.end();
@@ -224,6 +225,16 @@ module.exports = function (args) {
 					// FINALLY Serve the matching asset in the response
 				}
 			}).listen(settings.port);
+
+			server.on('error', function (err) {
+				logger.log('An error occured, ' + err, 1);
+				if (err.code == 'EADDRINUSE') {
+					logger.log('The address is currently in use', 1);
+				}
+				else if(err.code == 'EACCES') {
+					logger.log('You do not have access to use the specified port, ' + err, 1);
+				}
+			});
 	});
 
 

@@ -25,6 +25,7 @@ Debug (level 7)
 The lowest priority, and normally not logged except for messages from the kernel.
 */
 var colors = require('colors');
+var settings = require('../settings.json');
 var currentLevel = 6;
 /**
  * Expose the root.
@@ -39,7 +40,9 @@ exports = module.exports = new logger;
 exports.logger = logger;
 
 function logger() {
-
+	if(typeof settings !== 'undefined') {
+		currentLevel = Number(settings.log_level);
+	}
 }
 
 logger.prototype.setLogLevel = function(level) {
@@ -100,7 +103,7 @@ logger.prototype.log = function(statement, level) {
 				console.log(logStatement.cyan);
 			break;
 			default:
-				throw new error("Invalid log level submitted! Level: " + level + ", Statement: " + statement);
+				throw new Error("Invalid log level submitted! Level: " + level + ", Statement: " + statement);
 			break;
 		}
 	}

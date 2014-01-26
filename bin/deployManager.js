@@ -244,8 +244,8 @@ async.series([
 		logger.log('CSS files is : ' + cssFiles, 7);
 		cssFiles = cssFiles.split(',');
 
-		console.log('Found the following list of JS files in Nirodha paths: ' + JSON.stringify(jsFiles));
-		console.log('Found the following list of CSS files in Nirodha paths: ' + JSON.stringify(cssFiles));
+		logger.log('Found the following list of JS files in Nirodha paths: ' + JSON.stringify(jsFiles), 5);
+		logger.log('Found the following list of CSS files in Nirodha paths: ' + JSON.stringify(cssFiles), 5);
 
 		logger.log('Library manager init...');
 		lm.init(libraries, jsFiles, cssFiles);
