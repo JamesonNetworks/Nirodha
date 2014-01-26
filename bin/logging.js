@@ -25,7 +25,12 @@ Debug (level 7)
 The lowest priority, and normally not logged except for messages from the kernel.
 */
 var colors = require('colors');
-var settings = require('../settings.json');
+try {
+	var settings = require('../settings.json');
+}
+catch(err) {
+	console.log('Error occured in log init, is there a settings.json file?');
+}
 var currentLevel = 6;
 /**
  * Expose the root.
