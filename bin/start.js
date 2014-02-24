@@ -168,14 +168,14 @@ module.exports = function (args) {
 						 	stats = fs.lstatSync(filename); // throws if path doesn't exist
 						} catch (e) {
 							filename = path.join(process.cwd() + '/static/', unescape(uri));
-							logger.log('No matching asset found in project custom directory...', 4);
+							logger.log('No matching asset found in project custom directory for ' + uri + '...', 4);
 							logger.log('Attempting to serve a static asset matching from libs ' + uri);
 							logger.log('Using ' + filename + ' as filename...', 7);
 
 							try {
 							 	stats = fs.lstatSync(filename); // throws if path doesn't exist
 							} catch (e) {
-								logger.log('No static asset was found...', 4);
+								logger.log('No static asset was found for ' + filename + '...', 4);
 								res.writeHead(404, {'Content-Type': 'text/plain'});
 								res.write('404 Not Found\n');
 								res.end();
