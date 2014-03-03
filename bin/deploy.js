@@ -14,14 +14,8 @@ module.exports = function (args) {
 
 	if(args.length != 1) {
 		logger.log('Received more than 1 argument');
-		// if(args[0] === 'view' && args.length == 2) {
-
-		// }
-		// else {
-		// 	logger.log('Received an unknown command, quitting');
-		// }
 	}
 	logger.log('Deploying the following views: index.html...', 6);
 	// Create the folder with the structure
 	deployNirodhaView(args[0]);
-}
+};

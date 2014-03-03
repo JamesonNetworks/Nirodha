@@ -5,7 +5,7 @@ var path = require('path');
  * Expose the root.
  */
 
-exports = module.exports = new Util;
+exports = module.exports = new Util();
 
 /**
  * Expose `ViewManager`.
@@ -52,14 +52,14 @@ Util.prototype.walkSync = function (start, callback) {
 Util.prototype.isHtmlFile = function(element) {
 	//logger.log(element + ', Is this a HTML file? ' + (element.indexOf('.html') > 0));
 	return element.indexOf('.html') > 0;
-}
+};
 
 Util.prototype.isJsFile = function(element) {
 	//logger.log(element + ', Is this a JS file? ' + (element.indexOf('.js') > 0));
 	return element.indexOf('.js') > 0;
-}
+};
 
 Util.prototype.isCssFile = function(element) {
 	//logger.log(element + ', Is this a CSS file? ' + (element.indexOf('.css') > 0));
 	return element.indexOf('.css') > 0;
-}
+};

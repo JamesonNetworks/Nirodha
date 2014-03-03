@@ -11,7 +11,7 @@ var mimeTypes = {
     "png": "image/png",
     "js": "text/javascript",
     "css": "text/css"
-}
+};
 
 var Libraries;
 var JSFiles;
@@ -21,7 +21,7 @@ var CSSFiles;
  * Expose the root.
  */
 
-exports = module.exports = new LibraryManager;
+exports = module.exports = new LibraryManager();
 
 /**
  * Expose `LibraryManager`.
@@ -35,15 +35,15 @@ function LibraryManager() {
 
 var notFound = function(res) {
 
-}
+};
 
 // Accepts a response object and parses a view into it
 LibraryManager.prototype.init = function(libraries, jsfiles, cssfiles) {
 	Libraries = libraries;
-	JSFiles = jsfiles == null ? [] : jsfiles;
-	CSSFiles = cssfiles == null ? [] : cssfiles;
+	JSFiles = jsfiles === null ? [] : jsfiles;
+	CSSFiles = cssfiles === null ? [] : cssfiles;
 	logger.log('Libraries contained in current lm: ' + JSON.stringify(Libraries), 7);
-}
+};
 
 getLibraryContents = function(uri, callback) {
 	var found = false;
@@ -61,11 +61,11 @@ getLibraryContents = function(uri, callback) {
 			}
 		}
 	}
-}
+};
 
 LibraryManager.prototype.getLibraryContentsAsString = function(uri, callback) {
 	getLibraryContents(uri, callback);
-}
+};
 
 // Accepts a response object and parses a view into it
 LibraryManager.prototype.serveLibrary = function(uri, res) {
@@ -96,4 +96,4 @@ LibraryManager.prototype.serveLibrary = function(uri, res) {
 			res.end(constants.LIBRARY_NOT_FOUND + ' ' + uri);
 		}
 	});
-}
+};

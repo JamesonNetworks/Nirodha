@@ -36,7 +36,7 @@ var currentLevel = 6;
  * Expose the root.
  */
 
-exports = module.exports = new logger;
+exports = module.exports = new logger();
 
 /**
  * Expose `LibraryManager`.
@@ -52,14 +52,14 @@ function logger() {
 
 logger.prototype.setLogLevel = function(level) {
 	currentLevel = level;
-}
+};
 
 logger.prototype.getLogLevel = function() {
 	return currentLevel;
-}
+};
 
 logger.prototype.log = function(statement, level) {
-	if(level == null) {
+	if(level === null) {
 		// Default the log level to info
 		level = 6;
 	}
@@ -109,7 +109,6 @@ logger.prototype.log = function(statement, level) {
 			break;
 			default:
 				throw new Error("Invalid log level submitted! Level: " + level + ", Statement: " + statement);
-			break;
 		}
 	}
-}
+};

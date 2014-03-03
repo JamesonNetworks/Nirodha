@@ -8,7 +8,7 @@ var compressor = require('node-minify');
 // Handle to library manager
 var lm = require('./libraryManager.js');
 
-var TEMPLATE_KEY = new String('{templates}');
+var TEMPLATE_KEY = '{templates}';
 
 var scriptStart = '<script type="text/javascript" src="';
 var scriptEnd = '"></script>\n';
@@ -23,7 +23,7 @@ var searchDirectories = [];
  * Expose the root.
  */
 
-exports = module.exports = new DeployManager;
+exports = module.exports = new DeployManager();
 
 /**
  * Expose `DeployManager`.
@@ -47,7 +47,7 @@ var isCssFile = utils.isCssFile;
 
 DeployManager.prototype.init = function(pView) {
 	view = pView;
-}
+};
 
 function generateJsAndCSSForIncludeSection(text, libobject, view, callback) {
 	logger.log('In generateJsAndCSSForIncludeSection...', 6);
@@ -80,7 +80,7 @@ function generateJsAndCSSForIncludeSection(text, libobject, view, callback) {
 			else {
 				for(var i = 0; i < jsfiles.length; i++) {
 
-					logger.log('Inserting the following js library: ' + jsfiles[i], 7)
+					logger.log('Inserting the following js library: ' + jsfiles[i], 7);
 					lm.getLibraryContentsAsString(jsfiles[i], function(result, found) {
 						logger.log('Found ' + jsfiles[i] + '? ' + found, 7);
 						//logger.log('File contents: ' + result, 7);
@@ -137,29 +137,29 @@ function generateJsAndCSSForIncludeSection(text, libobject, view, callback) {
 
 		// Minify the files
 		new compressor.minify({
-		    type: 'gcc',
-		    fileIn: './deploy/js/' + view + '-' + title + '.js.temp',
-		    fileOut: './deploy/js/' + view + '-' + title + '.js',
-		    callback: function(err, min){
-		    	if(err) {
-		    		logger.log('Calling error for minifying ' + './deploy/js/' + view + '-' + title + '.js.temp', 3);
-		    		logger.log(err, 3);
-		    	}
-		    	fs.unlinkSync('./deploy/js/' + view + '-' + title + '.js.temp');
-		    }
+		type: 'gcc',
+		fileIn: './deploy/js/' + view + '-' + title + '.js.temp',
+		fileOut: './deploy/js/' + view + '-' + title + '.js',
+		callback: function(err, min){
+			if(err) {
+				logger.log('Calling error for minifying ' + './deploy/js/' + view + '-' + title + '.js.temp', 3);
+				logger.log(err, 3);
+			}
+			fs.unlinkSync('./deploy/js/' + view + '-' + title + '.js.temp');
+			}
 		});
 
 		new compressor.minify({
-		    type: 'yui-css',
-		    fileIn: './deploy/css/' + view + '-' + title + '.css.temp',
-		    fileOut: './deploy/css/' + view + '-' + title + '.css',
-		    callback: function(err, min){
-		    	if(err) {
-		    		logger.log('Calling error for minifying ' + './deploy/css/' + view + '-' + title + '.css.temp', 3);
-		    		logger.log(JSON.stringify(err), 3);
-		    	}
-		    	fs.unlinkSync('./deploy/css/' + view + '-' + title + '.css.temp');
-		    }
+		type: 'yui-css',
+		fileIn: './deploy/css/' + view + '-' + title + '.css.temp',
+		fileOut: './deploy/css/' + view + '-' + title + '.css',
+		callback: function(err, min){
+			if(err) {
+				logger.log('Calling error for minifying ' + './deploy/css/' + view + '-' + title + '.css.temp', 3);
+				logger.log(JSON.stringify(err), 3);
+			}
+			fs.unlinkSync('./deploy/css/' + view + '-' + title + '.css.temp');
+			}
 		});
 
 		callback(firstPartOfPage + lastPartOfPage);
@@ -218,7 +218,7 @@ async.series([
 				}
 			}
 			return returnableJsFiles;
-		}
+		};
 
 		var findCSSFiles = function(resultFileList) {
 			var returnableJsFiles = "";
@@ -232,7 +232,7 @@ async.series([
 				}
 			}
 			return returnableJsFiles;
-		}
+		};
 
 		jsFiles = findJsFiles(libraries[0]);
 		jsFiles += ',' + findJsFiles(libraries[1]);
@@ -260,7 +260,7 @@ async.series([
 
 		var addToPageText = function(finalText) {
 			pageText = finalText;
-		}
+		};
 
 		// var jsfiles = includes.js;
 		// var cssfiles = includes.css;
@@ -289,7 +289,7 @@ async.series([
 				// Add in the templates
 				function(cb) {
 					logger.log('view is : ' + view);
-					var template_filename = './custom/templates/' + view + '_templates.html'
+					var template_filename = './custom/templates/' + view + '_templates.html';
 					logger.log('Adding the templates html to the core html file...');
 					logger.log('Loading the following file: ' + template_filename);
 					var template_text = fs.readFileSync(template_filename).toString();
@@ -314,7 +314,7 @@ async.series([
 								logger.log(err, 3);
 							}
 							if(dir === 'custom/static') {
-								writeDir = 'deploy/'
+								writeDir = 'deploy/';
 							}
 							else {
 								logger.log('Directory to write to: ' + dir.substring(searchDirectories[2].length, dir.length), 6);
@@ -340,4 +340,4 @@ async.series([
 				fs.writeFileSync('./deploy/' + view + '.html', pageText);
 		});
 	});
-}
+};

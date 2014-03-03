@@ -23,7 +23,7 @@ var mimeTypes = {
     "gif": "image/gif",
     "ico": "image/gif",
     "svg": "image/svg+xml"
-}
+};
 
 var searchDirectories = [];
 
@@ -84,7 +84,7 @@ module.exports = function (args) {
 					}
 				}
 				return returnableJsFiles;
-			}
+			};
 
 			var findCSSFiles = function(resultFileList) {
 				var returnableJsFiles = "";
@@ -98,7 +98,7 @@ module.exports = function (args) {
 					}
 				}
 				return returnableJsFiles;
-			}
+			};
 
 			jsFiles = findJsFiles(libraries[0]);
 			jsFiles += ',' + findJsFiles(libraries[1]);
@@ -165,16 +165,18 @@ module.exports = function (args) {
 						logger.log('Attempting to serve a static asset matching ' + uri);
 						logger.log('Using ' + filename + ' as filename...', 7);
 						try {
-						 	stats = fs.lstatSync(filename); // throws if path doesn't exist
-						} catch (e) {
+							stats = fs.lstatSync(filename); // throws if path doesn't exist
+						} 
+						catch (e) {
 							filename = path.join(process.cwd() + '/static/', unescape(uri));
 							logger.log('No matching asset found in project custom directory for ' + uri + '...', 4);
 							logger.log('Attempting to serve a static asset matching from libs ' + uri);
 							logger.log('Using ' + filename + ' as filename...', 7);
 
 							try {
-							 	stats = fs.lstatSync(filename); // throws if path doesn't exist
-							} catch (e) {
+								stats = fs.lstatSync(filename); // throws if path doesn't exist
+							} 
+							catch (e) {
 								logger.log('No static asset was found for ' + filename + '...', 4);
 								res.writeHead(404, {'Content-Type': 'text/plain'});
 								res.write('404 Not Found\n');
@@ -186,43 +188,31 @@ module.exports = function (args) {
 
 
 						if (stats.isFile()) {
-						    // path exists, is a file
-						    logger.log('constants: ' + JSON.stringify(constants), 7);
-						    logger.log('extension: ' + path.extname(filename).split(".")[1], 7);
+							// path exists, is a file
+							logger.log('constants: ' + JSON.stringify(constants), 7);
+							logger.log('extension: ' + path.extname(filename).split(".")[1], 7);
 
-						    var mimeType = mimeTypes[path.extname(filename).split(".")[1]];
-						    logger.log('mimeType: ' + mimeType, 7);
-						    res.writeHead(200, {'Content-Type': mimeType} );
+							var mimeType = mimeTypes[path.extname(filename).split(".")[1]];
+							logger.log('mimeType: ' + mimeType, 7);
+							res.writeHead(200, {'Content-Type': mimeType} );
 
-						    var fileStream = fs.createReadStream(filename);
-						    fileStream.pipe(res);
-						} else if (stats.isDirectory()) {
-						    // path exists, is a directory
-						    res.writeHead(200, {'Content-Type': 'text/plain'});
-						    res.write('Requested directory, '+uri+'\n');
-						    res.end();
-						} else {
-						    // Symbolic link, other?
-						    // TODO: follow symlinks?  security?
-						    res.writeHead(500, {'Content-Type': 'text/plain'});
-						    res.write('500 Internal server error\n');
-						    res.end();
+							var fileStream = fs.createReadStream(filename);
+							fileStream.pipe(res);
+						} 
+						else if (stats.isDirectory()) {
+							// path exists, is a directory
+							res.writeHead(200, {'Content-Type': 'text/plain'});
+							res.write('Requested directory, '+uri+'\n');
+							res.end();
+						} 
+						else {
+							// Symbolic link, other?
+							// TODO: follow symlinks?  security?
+							res.writeHead(500, {'Content-Type': 'text/plain'});
+							res.write('500 Internal server error\n');
+							res.end();
 						}
 					}
-					// else {
-
-					// 	logger.log(constants.LIBRARY_NOT_FOUND + ' ' + req.url);
-					// 	res.writeHead(404, {'Content-Type': 'text/plain'});
-					// 	res.end(constants.LIBRARY_NOT_FOUND + ' ' + req.url);
-					// }
-					// IF Look for a matching view
-						// If a matching view exists, determine what is being requested
-						// If its an html file, parse the thtml, and replace the includes with the appropriate stuff
-						// Else it is a CSS or a JS file, check the custom folder for the appropriate file
-							// If you can't find that, check the libraries for a matching asset
-					// ELSE Send a generic 404 if no matching view exists
-
-					// FINALLY Serve the matching asset in the response
 				}
 			}).listen(settings.port);
 
@@ -246,4 +236,4 @@ module.exports = function (args) {
 
 
 
-}
+};

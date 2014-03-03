@@ -131,4 +131,4 @@ module.exports = function (args) {
 			createNirodhaView('index', dirName);
 		}
 	}
-}
+};

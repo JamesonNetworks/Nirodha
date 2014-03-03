@@ -8,7 +8,7 @@ var scriptEnd = '"></script>\n';
 var styleStart = '<link rel="stylesheet" href="';
 var styleEnd = '">\n';
 
-var TEMPLATE_KEY = new String('{templates}');
+var TEMPLATE_KEY = '{templates}';
 
 var view;
 
@@ -16,7 +16,7 @@ var view;
  * Expose the root.
  */
 
-exports = module.exports = new ViewManager;
+exports = module.exports = new ViewManager();
 
 /**
  * Expose `ViewManager`.
@@ -30,7 +30,7 @@ function ViewManager() {
 
 ViewManager.prototype.init = function(pView) {
 	view = pView;
-}
+};
 
 function insertLibrariesAt(text, libobject, callback) {
 
@@ -56,7 +56,7 @@ function insertLibrariesAt(text, libobject, callback) {
 			}
 			else {
 				for(var i = 0; i < jsfiles.length; i++) {
-					logger.log('Inserting the following js library: ' + jsfiles[i], 7)
+					logger.log('Inserting the following js library: ' + jsfiles[i], 7);
 					jsincludes += (scriptStart + jsfiles[i] + scriptEnd);
 					if(i == jsfiles.length-1) {
 						cb(null, jsincludes);
@@ -120,7 +120,7 @@ ViewManager.prototype.parse = function(res) {
 		},
 		function(cb) {
 			// Add templates in
-			var template_filename = './custom/templates/' + view.substring(0, view.length-5) + '_templates.html'
+			var template_filename = './custom/templates/' + view.substring(0, view.length-5) + '_templates.html';
 			logger.log('Adding the templates html to the core html file...');
 			logger.log('Loading the following file: ' + template_filename);
 			var template_text = fs.readFileSync(template_filename).toString();
@@ -132,4 +132,4 @@ ViewManager.prototype.parse = function(res) {
 			res.end(firstpart + template_text + lastpart);
 		}
 	]);
-}
+};

@@ -6,9 +6,9 @@ var mimeTypes = {
     "png": "image/png",
     "js": "text/javascript",
     "css": "text/css"
-}
+};
 
-exports = module.exports = new Constants;
+exports = module.exports = new Constants();
 
 /**
  * Expose `Constants`.
@@ -17,4 +17,5 @@ exports = module.exports = new Constants;
 exports.Constants = Constants;
 
 function Constants() {
+	
 }
