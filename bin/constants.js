@@ -17,5 +17,5 @@ exports = module.exports = new Constants();
 exports.Constants = Constants;
 
 function Constants() {
-	
+
 }
