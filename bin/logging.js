@@ -45,8 +45,13 @@ exports = module.exports = new logger();
 exports.logger = logger;
 
 function logger() {
+	console.log('Constructing logger...');
 	if(typeof settings !== 'undefined') {
 		currentLevel = Number(settings.log_level);
+		// console.log('Set log level to: ' + currentLevel);
+	}
+	else {
+		// console.log('Log level not defined');
 	}
 }
 
@@ -59,11 +64,16 @@ logger.prototype.getLogLevel = function() {
 };
 
 logger.prototype.log = function(statement, level) {
-	if(level === null) {
+	// console.log('Starting to log statement...');
+	if(level === null || typeof(level) == 'undefined') {
+		// console.log('Level was set to null, resetting level to 6...');
 		// Default the log level to info
 		level = 6;
 	}
 	// Check to make sure we need to log something
+	// console.log('Level of this statement to log: ' + level);
+	// console.log('Current level of this statement to log: ' + currentLevel);
+	// console.log('Result of level <= currentLevel: ' + level <= currentLevel);
 	if(level <= currentLevel) {
 		var logStatement = "";
 		switch(level) {

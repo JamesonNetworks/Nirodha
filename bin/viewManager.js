@@ -11,6 +11,7 @@ var styleEnd = '">\n';
 var TEMPLATE_KEY = '{templates}';
 
 var view;
+var directory;
 
 /**
  * Expose the root.
@@ -28,7 +29,8 @@ function ViewManager() {
 
 }
 
-ViewManager.prototype.init = function(pView) {
+ViewManager.prototype.init = function(pDirectory, pView) {
+	directory = pDirectory;
 	view = pView;
 };
 
@@ -100,9 +102,9 @@ ViewManager.prototype.parse = function(res) {
 */
 
 	// Get the page text for the view by removing the .html portion of the request and parsing the view
-	var pageText = fs.readFileSync(view).toString();
+	var pageText = fs.readFileSync(directory + view).toString();
 
-	var includes = JSON.parse(fs.readFileSync(view.substring(0, view.length-5) + '.json').toString());
+	var includes = JSON.parse(fs.readFileSync(directory + view.substring(0, view.length-5) + '.json').toString());
 
 	// Get a list of the strings to search for in the html file
 
@@ -120,7 +122,7 @@ ViewManager.prototype.parse = function(res) {
 		},
 		function(cb) {
 			// Add templates in
-			var template_filename = './custom/templates/' + view.substring(0, view.length-5) + '_templates.html';
+			var template_filename = directory + '/custom/templates/' + view.substring(0, view.length-5) + '_templates.html';
 			logger.log('Adding the templates html to the core html file...');
 			logger.log('Loading the following file: ' + template_filename);
 			var template_text = fs.readFileSync(template_filename).toString();

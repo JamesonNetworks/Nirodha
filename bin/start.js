@@ -37,12 +37,21 @@ var isJsFile = utils.isJsFile;
 
 var isCssFile = utils.isCssFile;
 
+var rootDirectory;
+
 module.exports = function (args) {
+	if(args.length > 0) {
+		rootDirectory = args[0];
+	}
+	else {
+		rootDirectory = '.';
+	}
+
 	// Set up search
-	searchDirectories.push('./custom');
+	searchDirectories.push(rootDirectory + '/custom');
 	searchDirectories.push(settings.path_to_nirodha + 'libs');
 
-	var htmlFiles = fs.readdirSync('.').toString().split(',').filter(isHtmlFile);
+	var htmlFiles = fs.readdirSync(rootDirectory).toString().split(',').filter(isHtmlFile);
 
 	// Start by searching the custom directories
 	async.series([
@@ -137,7 +146,8 @@ module.exports = function (args) {
 
 								// Get a handle to a VM object
 								var vm = require('./viewManager.js');
-								vm.init(URI);
+								logger.log('Serving ' + rootDirectory + ' as root directory and ' + URI + ' as view');
+								vm.init(rootDirectory, URI);
 
 								// Set the headers to NEVER cache results
 								res.writeHead(200, {
@@ -159,7 +169,7 @@ module.exports = function (args) {
 					// Look for a static file in the static files directory
 					else {
 						var uri = url.parse(req.url).pathname;
-						var filename = path.join('./custom/static/', unescape(uri));
+						var filename = path.join(rootDirectory + '/custom/static/', unescape(uri));
 						var stats;
 
 						logger.log('Attempting to serve a static asset matching ' + uri);
@@ -168,7 +178,7 @@ module.exports = function (args) {
 							stats = fs.lstatSync(filename); // throws if path doesn't exist
 						} 
 						catch (e) {
-							filename = path.join(process.cwd() + '/static/', unescape(uri));
+							filename = path.join(rootDirectory + '/static/', unescape(uri));
 							logger.log('No matching asset found in project custom directory for ' + uri + '...', 4);
 							logger.log('Attempting to serve a static asset matching from libs ' + uri);
 							logger.log('Using ' + filename + ' as filename...', 7);
