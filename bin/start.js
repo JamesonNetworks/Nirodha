@@ -166,6 +166,20 @@ module.exports = function (args) {
 						logger.log('Handing ' + req.url + ' to the library manager...');
 						lm.serveLibrary(URI, res);
 					}
+					else if(URI === '') {
+						logger.log('There was no request URI, serving links to each view...', 7);
+						var pageText = '';
+						for(var i = 0; i < htmlFiles.length; i++) {
+							pageText += '<a href='+ htmlFiles[i] + '> ' + htmlFiles[i] + '</a> \n';
+						}
+						// Set the headers to NEVER cache results
+						res.writeHead(200, {
+							'Content-Type': 'text/html',
+							'cache-control':'no-cache'
+						});
+						res.write(pageText);
+						res.end();
+					}
 					// Look for a static file in the static files directory
 					else {
 						var uri = url.parse(req.url).pathname;
