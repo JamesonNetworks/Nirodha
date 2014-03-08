@@ -44,7 +44,7 @@ module.exports = function (args) {
 		rootDirectory = args[0];
 	}
 	else {
-		rootDirectory = '.';
+		rootDirectory = './';
 	}
 
 	// Set up search
@@ -167,7 +167,7 @@ module.exports = function (args) {
 						lm.serveLibrary(URI, res);
 					}
 					else if(URI === '') {
-						logger.log('There was no request URI, serving links to each view...', 7);
+						logger.log('There was no request URI, serving links to each view...');
 						var pageText = '';
 						for(var i = 0; i < htmlFiles.length; i++) {
 							pageText += '<a href='+ htmlFiles[i] + '> ' + htmlFiles[i] + '</a> \n';
