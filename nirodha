@@ -33,8 +33,6 @@ program
 
 program.parse(process.argv);
 
-console.log(JSON.stringify(program));
-
 /*  Nirodha Source Code
  *  Author: Brent Jameson
  *  Date: Oct 24 2013

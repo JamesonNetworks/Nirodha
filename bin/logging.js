@@ -45,7 +45,6 @@ exports = module.exports = new logger();
 exports.logger = logger;
 
 function logger() {
-	console.log('Constructing logger...');
 	if(typeof settings !== 'undefined') {
 		currentLevel = Number(settings.log_level);
 		// console.log('Set log level to: ' + currentLevel);
