@@ -86,22 +86,12 @@ suite('CreateSuite', function() {
 	});
 
 	test('Create a view in test project', function(done) {
-		var testviewproject = testproject + '1';
-		var args = [testviewproject];
+		var args = [testproject];
 		var projectpath = temppath + args[0];
 		async.series([
 			function(cb) {
-				if(fs.existsSync(projectpath)) {
-					deleteFolderRecursive(projectpath);
-				}
-				while(fs.existsSync(projectpath)) {
-
-				}
-				cb();
-			},
-			function(cb) {
 				create(args, function(testing_code) {
-					process.chdir(testviewproject);
+					process.chdir(projectpath);
 					cb();
 				});
 			},
@@ -113,8 +103,8 @@ suite('CreateSuite', function() {
 				});
 			},
 			function(cb) {
-				fs.existsSync(os.tmpdir() + testviewproject + '/newview.html').should.be.true;
-				fs.existsSync(os.tmpdir() + testviewproject + '/newview.json').should.be.true;
+				fs.existsSync(os.tmpdir() + testproject + '/newview.html').should.be.true;
+				fs.existsSync(os.tmpdir() + testproject + '/newview.json').should.be.true;
 				cb();
 			}
 		], function() {

@@ -31,4 +31,17 @@ suite('DeploySuite', function() {
 			done();
 		});
 	});
+
+	test('Deploy newview view', function(done) {
+		async.series([
+			function(cb) {
+				deploy(['newview'], function(testing_code) {
+					testing_code.should.equal(testing.deploysuite.viewdeployed);
+				});
+				cb();
+			}
+		], function() {
+			done();
+		});
+	});
 });
