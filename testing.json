@@ -1,0 +1,11 @@
+{
+	"createsuite": {
+		"unknown": "UNKNOWN_COMMAND",
+		"viewcreated": "viewcreated",
+		"projectcreated": "projectcreated",
+		"projectexists": "projectexists"
+	},
+	"deploysuite": {
+		"viewdeployed": "viewdeployed"
+	}
+}

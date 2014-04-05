@@ -4,6 +4,7 @@ var async = require('async');
 var utils = require('./utilities.js');
 var settings = require('../settings.json');
 var compressor = require('node-minify');
+var testing = require('../testing.json');
 
 // Handle to library manager
 var lm = require('./libraryManager.js');
@@ -168,7 +169,7 @@ function generateJsAndCSSForIncludeSection(text, libobject, view, callback) {
 
 
 // Accepts a response object and parses a view into it
-DeployManager.prototype.deploy = function(view) {
+DeployManager.prototype.deploy = function(view, callback) {
 
 if(!view) {
 	throw Error('No view specified!');
@@ -338,6 +339,7 @@ async.series([
 			function(err, results) {
 				logger.log('Writing final html file...');
 				fs.writeFileSync('./deploy/' + view + '.html', pageText);
+				callback(testing.deploysuite.viewdeployed)
 		});
 	});
 };

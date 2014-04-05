@@ -1,5 +1,8 @@
 // Logging modile, logs based on levels 1-7
 /*
+Nolog (level -1)
+Don't log at all, used for testing
+
 Emergency (level 0)
 The highest priority, usually reserved for catastrophic failures and reboot notices.
 
@@ -62,13 +65,18 @@ logger.prototype.getLogLevel = function() {
 	return currentLevel;
 };
 
-logger.prototype.log = function(statement, level) {
+logger.prototype.log = function(statement, level, callback) {
 	// console.log('Starting to log statement...');
 	if(level === null || typeof(level) == 'undefined') {
 		// console.log('Level was set to null, resetting level to 6...');
 		// Default the log level to info
 		level = 6;
 	}
+
+	if(typeof(callback) === 'undefined') {
+		callback = console.log;
+	}
+
 	// Check to make sure we need to log something
 	// console.log('Level of this statement to log: ' + level);
 	// console.log('Current level of this statement to log: ' + currentLevel);
@@ -76,45 +84,48 @@ logger.prototype.log = function(statement, level) {
 	if(level <= currentLevel) {
 		var logStatement = "";
 		switch(level) {
+			case -1:
+				callback('');
+			break;
 			case 0:
 				logStatement += "[ 0, EMR ] : ";
 				logStatement += statement;
-				console.log(logStatement.red);
+				callback(logStatement.red);
 			break;
 			case 1:
 				logStatement += "[ 1, ALT ] : ";
 				logStatement += statement;
-				console.log(logStatement.red);
+				callback(logStatement.red);
 			break;
 			case 2:
 				logStatement += "[ 2, CRT ] : ";
 				logStatement += statement;
-				console.log(logStatement.red);
+				callback(logStatement.red);
 			break;
 			case 3:
 				logStatement += "[ 3, ERR ] : ";
 				logStatement += statement;
-				console.log(logStatement.red);
+				callback(logStatement.red);
 			break;
 			case 4:
 				logStatement += "[ 4, WRN ] : ";
 				logStatement += statement;
-				console.log(logStatement.yellow);
+				callback(logStatement.yellow);
 			break;
 			case 5:
 				logStatement += "[ 5, NTC ] : ";
 				logStatement += statement;
-				console.log(logStatement);
+				callback(logStatement);
 			break;
 			case 6:
 				logStatement += "[ 6, INF ] : ";
 				logStatement += statement;
-				console.log(logStatement.green);
+				callback(logStatement.green);
 			break;
 			case 7:
 				logStatement += "[ 7, DBG ] : ";
 				logStatement += statement;
-				console.log(logStatement.cyan);
+				callback(logStatement.cyan);
 			break;
 			default:
 				throw new Error("Invalid log level submitted! Level: " + level + ", Statement: " + statement);

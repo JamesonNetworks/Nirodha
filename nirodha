@@ -51,24 +51,25 @@ if(program.start) {
   }
 }
 
-// Try to get the settings from the nirodha config file in current directory
-var currentSettings;
-logger.log('Try to get the settings from info.json...');
-try {
-  // console.log(JSON.stringify(fs.readdirSync(site_path)));
-  currentSettings = require(process.cwd() + '/' + site_path + 'info.json');
-  logger.log('Settings set: ' + JSON.stringify(currentSettings), 7);
-}
-catch(err) {
-  logger.log('Error occured getting the settings, most likely they do not exists: ' + err, 0);
-  debugger;
-  currentSettings = null;
+if(!program.create) {
+  // Try to get the settings from the nirodha config file in current directory
+  var currentSettings;
+  logger.log('Try to get the settings from info.json...');
+  try {
+    // console.log(JSON.stringify(fs.readdirSync(site_path)));
+    currentSettings = require(process.cwd() + '/' + site_path + 'info.json');
+    logger.log('Settings set: ' + JSON.stringify(currentSettings), 7);
+  }
+  catch(err) {
+    logger.log('Error occured getting the settings, most likely they do not exists: ' + err, 0);
+    currentSettings = null;
+  }
+
+  logger.log('Current directory: ' + process.cwd() + '/' + site_path);
 }
 
 var defaultSettings = require('./tmpl/newproject.default.json');
 var inNirodaWorkingDir = false;
-
-logger.log('Current directory: ' + process.cwd() + '/' + site_path);
 
 // Check the settings of the file and determine if we are compatible
 if(currentSettings) {
