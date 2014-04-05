@@ -7,7 +7,7 @@ try {
 catch(err) {
 	console.log('Error occured in create.js, is there a settings.json file?');
 	settings = {};
-	settings.path_to_nirodha = process.cwd();
+	settings.path_to_nirodha = process.cwd() + '/';
 }
 var testing = require('../testing.json');
 var async = require('async');
