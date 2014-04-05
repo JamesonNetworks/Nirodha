@@ -3,7 +3,11 @@ try {
 	var settings = require('../settings.json');
 }
 catch(err) {
-	console.log('Error occured in log init, is there a settings.json file?');
+	console.log('Error occured in log init, is there a settings.json file? Using defaults for test...');
+	settings = {};
+	settings.path_to_nirodha = '.';
+	settings.port = 3000;
+	settings.log_level = 6;
 }
 
 suite('Settings Suite', function() {
