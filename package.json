@@ -17,7 +17,7 @@
     "jshint": "2.4.x"
   },
   "scripts": {
-    "test": "mocha -R spec -u tdd --recursive -R xunit test/ > test-reports.xml"
+    "test": "mocha -R spec -u tdd --recursive test/"
   },
   "engine": "node >= 0.10.x"
 }
