@@ -5,9 +5,9 @@ try {
 	var settings = require('../settings.json');
 }
 catch(err) {
-	console.log('Error occured in log init, is there a settings.json file?');
+	console.log('Error occured in create.js, is there a settings.json file?');
 	settings = {};
-	settings.path_to_nirodha = '../';
+	settings.path_to_nirodha = process.cwd();
 }
 var testing = require('../testing.json');
 var async = require('async');
