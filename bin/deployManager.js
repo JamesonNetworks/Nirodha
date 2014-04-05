@@ -2,7 +2,14 @@ var fs = require('fs');
 var logger = require('./logging.js');
 var async = require('async');
 var utils = require('./utilities.js');
-var settings = require('../settings.json');
+try {
+	var settings = require('../settings.json');
+}
+catch(err) {
+	console.log('Error occured in log init, is there a settings.json file?');
+	settings = {};
+	settings.path_to_nirodha = '../';
+}
 var compressor = require('node-minify');
 var testing = require('../testing.json');
 

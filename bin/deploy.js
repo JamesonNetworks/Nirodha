@@ -1,7 +1,6 @@
 var logger = require('./logging.js');
 var fs = require('fs');
 var path = require('path');
-var settings = require('../settings.json');
 var dm = require('./deployManager.js');
 
 function deployNirodhaView(viewname, callback) {
