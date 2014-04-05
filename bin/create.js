@@ -7,7 +7,7 @@ try {
 catch(err) {
 	console.log('Error occured in log init, is there a settings.json file?');
 	settings = {};
-	settings.path_to_nirodha = '.';
+	settings.path_to_nirodha = '../';
 }
 var testing = require('../testing.json');
 var async = require('async');
