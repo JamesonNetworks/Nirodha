@@ -1,7 +1,14 @@
 var logger = require('./logging.js');
 var fs = require('fs');
 var path = require('path');
-var settings = require('../settings.json');
+try {
+	var settings = require('../settings.json');
+}
+catch(err) {
+	console.log('Error occured in log init, is there a settings.json file?');
+	settings = {};
+	settings.path_to_nirodha = '.';
+}
 var testing = require('../testing.json');
 var async = require('async');
 
