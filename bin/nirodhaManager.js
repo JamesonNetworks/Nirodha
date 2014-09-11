@@ -1,21 +1,13 @@
-var fs = require('fs');
-var logger = require('./logging.js');
-var async = require('async');
+var logger = require('jslogging'),
+	fs = require('fs'),
+	async = require('async'),
+	compressor = require('node-minify');
+
 var utils = require('./utilities.js');
-try {
-	var settings = require('../settings.json');
-}
-catch(err) {
-	console.log('Error occured in log init, is there a settings.json file?');
-	settings = {};
-	settings.path_to_nirodha = '../';
-}
-var compressor = require('node-minify');
+var lm = require('./libraryManager.js');
 var testing = require('../testing.json');
 
-// Handle to library manager
-var lm = require('./libraryManager.js');
-
+// Constants
 var TEMPLATE_KEY = '{templates}';
 
 var scriptStart = '<script type="text/javascript" src="';
@@ -25,37 +17,56 @@ var styleStart = '<link rel="stylesheet" href="';
 var styleEnd = '">\n';
 
 var view;
+var directory;
+
 var searchDirectories = [];
 
-/**
- * Expose the root.
- */
-
-exports = module.exports = new DeployManager();
-
-/**
- * Expose `DeployManager`.
- */
-
-exports.DeployManager = DeployManager;
-
-function DeployManager() {
-
-}
-
+// Other crap
 // Method to get all files in directories
 var walkSync = utils.walkSync;
 
 // Filters
 var isHtmlFile = utils.isHtmlFile;
-
 var isJsFile = utils.isJsFile;
-
 var isCssFile = utils.isCssFile;
 
-DeployManager.prototype.init = function(pView) {
-	view = pView;
-};
+var settings;
+
+exports = module.exports = new nirodhaManager();
+
+/**
+ * Expose `nirodhaManager`.
+ */
+
+exports.nirodhaManager = nirodhaManager;
+
+function nirodhaManager() {
+}
+
+// Helper function for creating files
+function copyFile(source, target, cb) {
+	var cbCalled = false;
+
+	var rd = fs.createReadStream(source);
+	rd.on("error", function(err) {
+		done(err);
+	});
+	var wr = fs.createWriteStream(target);
+	wr.on("error", function(err) {
+		done(err);
+	});
+	wr.on("close", function(ex) {
+		done();
+	});
+	rd.pipe(wr);
+
+	function done(err) {
+ 		if (!cbCalled) {
+ 			cb(err);
+ 			cbCalled = true;
+		}
+	}
+}
 
 function generateJsAndCSSForIncludeSection(text, libobject, view, callback) {
 	logger.log('In generateJsAndCSSForIncludeSection...', 6);
@@ -67,12 +78,12 @@ function generateJsAndCSSForIncludeSection(text, libobject, view, callback) {
 
 	var title = libobject.title.substring(1, libobject.title.length-1);
 
-	logger.log('Title: ' + title);
+	logger.debug('Title: ' + title);
 
 	async.series([
 		// Insert js files
 		function(cb) {
-			logger.log('Entering loop to add js libraries', 7);
+			logger.debug('Entering loop to add js libraries');
 
 			var jsfiles = libobject.libs.js;
 			logger.log('JS Library lengths: ' + jsfiles.length, 7);
@@ -174,24 +185,209 @@ function generateJsAndCSSForIncludeSection(text, libobject, view, callback) {
 	});
 }
 
+function insertLibrariesAt(text, libobject, callback) {
 
-// Accepts a response object and parses a view into it
-DeployManager.prototype.deploy = function(view, callback) {
+	// logger.log('text dump: ' + JSON.stringify(text));
+	logger.debug('libobject dump: ' + JSON.stringify(libobject));
+	var start = text.indexOf(libobject.title);
+	var end = start + libobject.title.length;
+	var firstpart = text.substring(0, start);
+	var lastpart = text.substring(end, text.length);
 
-if(!view) {
-	throw Error('No view specified!');
+	var jsfiles = libobject.libs.js;
+	var cssfiles = libobject.libs.css;
+
+	async.series([
+		// Insert js files
+		function(cb) {
+			logger.log('Entering loop to add js libraries', 7);
+			logger.log('JS Library lengths: ' + jsfiles.length, 7);
+			// Insert references to the new js library files
+			var jsincludes = "";
+			if(jsfiles.length === 0) {
+				cb(null, jsincludes);
+			}
+			else {
+				for(var i = 0; i < jsfiles.length; i++) {
+					logger.log('Inserting the following js library: ' + jsfiles[i], 7);
+					jsincludes += (scriptStart + jsfiles[i] + scriptEnd);
+					if(i == jsfiles.length-1) {
+						cb(null, jsincludes);
+					}
+				}
+			}
+		},
+		//Insert css files
+		function(cb) {
+			logger.log('Entering loop to add css libraries', 7);
+			logger.log('CSS Library length: ' + cssfiles.length, 7);
+			// Insert references to the new css library files
+			var cssincludes = "";
+			if(cssfiles.length === 0) {
+				cb(null, cssincludes);
+			}
+			else {
+				for(var i = 0; i < cssfiles.length; i++) {
+					logger.log('Inserting the following css library: ' + cssfiles[i], 7);
+					cssincludes += (styleStart + cssfiles[i] + styleEnd);
+					if(i == cssfiles.length-1) {
+						cb(null, cssincludes);
+					}
+				}
+			}
+		}
+	], 
+	function(err, results) {
+		logger.debug('Inserting the following js results: ' + results[0]);
+		logger.dbeug('Inserting the following css results: ' + results[1]);
+		
+		callback(firstpart + results[0].toString() + results[1].toString() + lastpart);
+	});
 }
 
-// Set up search
-searchDirectories.push('./custom');
-searchDirectories.push(settings.path_to_nirodha + 'libs');
-searchDirectories.push('custom/static');
+function createView(settings, viewname, optdirectory, callback) {
+	var dir;
+	async.series([
+		function(cb) {
+			if(optdirectory) {
+				dir = optdirectory;
+				cb(null, true);
+			}
+			else {
+				dir = './';
+				cb(null, true);
+			}
+		},
+		function(cb) {
+			// Copy in the default view
+			logger.debug('Copying the default view, this is settings: ' + JSON.stringify(settings));
+			copyFile(settings.path_to_nirodha + 'tmpl/defaultView.html', dir + viewname + '.html', function(err) {
+				if(err) {
+					logger.warn('Problem copying default view: ' + err, 0);
+					cb(err);
+				}
+				else {
+					logger.log('Successfully created ' + viewname + '.html');
+					cb(null, true);
+				}
+			});
+		},
+		function(cb) {
+			// Copy in the default javascript
+			logger.log('Copying the default view javascript, this is settings: ' + JSON.stringify(settings));
+			copyFile(settings.path_to_nirodha + 'tmpl/defaultView.js', dir + 'custom/js/' + viewname + '.js', function(err) {
+				if(err) {
+					logger.warn('Problem copying default js: ' + err, 0);
+					cb(err);
+				}
+				else {
+					logger.log('Successfully created ' + viewname + '.js');
+					cb(null, true);
+				}
+			});
+		},
+		function(cb) {
+			// Copy in the default css
+			copyFile(settings.path_to_nirodha + 'tmpl/defaultView.css', dir + 'custom/css/' + viewname + '.css', function(err) {
+				if(err) {
+					logger.warn('Problem copying default css: ' + err, 0);
+					cb(err);
+				}
+				else {
+					logger.log('Successfully created ' + viewname + '.css');
+					cb(null, true);
+				}
+			});
+		},
+		function(cb) {
+			// Copy in the default json accessories
+			copyFile(settings.path_to_nirodha + 'tmpl/defaultView.json', dir + viewname + '.json', function(err) {
+				if(err) {
+					logger.warn('Problem copying default css: ' + err, 0);
+					cb(err);
+				}
+				else {
+					logger.log('Successfully created ' + viewname + '.json');
+					cb(null, true);
+				}
+			});
+		},
+		function(cb) {
+			// Copy in the default view templates
+			copyFile(settings.path_to_nirodha + 'tmpl/defaultView_templates.html', dir + 'custom/templates/' + viewname + '_templates.html', function(err) {
+				if(err) {
+					logger.warn('Problem copying default view: ' + err, 0);
+					cb(err);
+				}
+				else {
+					logger.log('Successfully created ' + viewname + '_templates.html');
+					cb(null, true);
+				}
+			});
+		}
+	], function(err, results) {
+		if(err) {
+			logger.warn('An error occured copying the default view files: ' + err + ' ' + JSON.stringify(results), 3);
+			logger.debug('dir: ' + process.cwd());
+			logger.warn(JSON.stringify(err));
+			callback(err);
+		}
+		else {
+			if(dir === './') {
+				callback(testing.nirodhaManager.viewcreated);
+			}
+			else {
+				callback(testing.nirodhaManager.projectcreated);
+			}
+		}
+	});
+}
 
-/*
-*	Parse the libraries included in the thtml
-*/
+nirodhaManager.prototype.setSettings = function(settings) {
+	this.settings = settings;
+}
 
-// Start by searching the custom directories
+nirodhaManager.prototype.createProject = function(directoryName, callback) {
+	logger.log('Creating directory: ' + directoryName, 7);
+	fs.mkdirSync(directoryName);
+	fs.mkdirSync(directoryName + 'custom');
+	fs.mkdirSync(directoryName + 'custom/js');
+	fs.mkdirSync(directoryName + 'custom/css');
+	fs.mkdirSync(directoryName + 'custom/templates');
+	fs.mkdirSync(directoryName + 'deploy');
+	fs.mkdirSync(directoryName + 'deploy/js');
+	fs.mkdirSync(directoryName + 'deploy/css');
+	fs.mkdirSync(directoryName + 'custom/static');
+	createView(this.settings, 'index', directoryName, callback);
+}
+
+nirodhaManager.prototype.createView = function(viewname, optdirectory, callback) {
+	logger.log('In createView... ' + JSON.stringify(this.settings));
+	createView(this.settings, viewname, optdirectory, callback);
+}
+
+nirodhaManager.prototype.init = function(pView, pDirectory) {
+	directory = pDirectory;
+	view = pView;
+};
+
+nirodhaManager.prototype.deploy = function(settings, view, callback) {
+
+	logger.log('Settings: ' + JSON.stringify(settings));
+	if(!view) {
+		throw Error('No view specified!');
+	}
+
+	// Set up search
+	searchDirectories.push('./custom');
+	searchDirectories.push(settings.path_to_nirodha + 'libs');
+	searchDirectories.push('custom/static');
+
+	/*
+	*	Parse the libraries included in the thtml
+	*/
+
+	// Start by searching the custom directories
 async.series([
 	function(callback) {
 		var files = [];
@@ -346,7 +542,49 @@ async.series([
 			function(err, results) {
 				logger.log('Writing final html file...');
 				fs.writeFileSync('./deploy/' + view + '.html', pageText);
-				callback(testing.deploysuite.viewdeployed)
+				callback(testing.nirodhaManager.viewdeployed)
 		});
 	});
+};
+
+// Accepts a response object and parses a view into it
+nirodhaManager.prototype.parse = function(res) {
+
+/*
+*	Parse the libraries included in the thtml
+*/
+
+	// Get the page text for the view by removing the .html portion of the request and parsing the view
+	var pageText = fs.readFileSync(directory + view).toString();
+
+	var includes = JSON.parse(fs.readFileSync(directory + view.substring(0, view.length-5) + '.json').toString());
+
+	// Get a list of the strings to search for in the html file
+
+	var addToPageText = function(finalText) {
+		pageText = finalText;
+	};
+
+	async.series([
+		function(cb) {
+			for(var i = 0; i < includes.length; i++) {
+				// logger.log('index: ' + i + ' , pageText: ' + pageText);
+				insertLibrariesAt(pageText, includes[i], addToPageText);
+			}
+			cb();
+		},
+		function(cb) {
+			// Add templates in
+			var template_filename = directory + '/custom/templates/' + view.substring(0, view.length-5) + '_templates.html';
+			logger.log('Adding the templates html to the core html file...');
+			logger.log('Loading the following file: ' + template_filename);
+			var template_text = fs.readFileSync(template_filename).toString();
+
+			var start = pageText.indexOf(TEMPLATE_KEY);
+			var end  = pageText.indexOf(TEMPLATE_KEY) + TEMPLATE_KEY.length;
+			var firstpart = pageText.substring(0, start);
+			var lastpart = pageText.substring(end, pageText.length);
+			res.end(firstpart + template_text + lastpart);
+		}
+	]);
 };

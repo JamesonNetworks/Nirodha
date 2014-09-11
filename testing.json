@@ -1,11 +1,14 @@
 {
-	"createsuite": {
+	"create": {
 		"unknown": "UNKNOWN_COMMAND",
-		"viewcreated": "viewcreated",
-		"projectcreated": "projectcreated",
 		"projectexists": "projectexists"
 	},
-	"deploysuite": {
+	"nirodhaManager": {
+		"viewcreated": "viewcreated",
+		"projectcreated": "projectcreated",
 		"viewdeployed": "viewdeployed"
+	},
+	"deploy": {
+
 	}
 }

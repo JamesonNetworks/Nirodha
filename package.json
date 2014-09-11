@@ -8,7 +8,8 @@
     "async": "0.2.x",
     "commander": "2.0.x",
     "node-minify": "0.8.x",
-    "colors": "0.6.x"
+    "colors": "0.6.x",
+    "jslogging": "0.1.x"
   },
   "devDependencies": {
     "mocha": "1.17.x",

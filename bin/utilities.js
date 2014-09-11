@@ -8,7 +8,7 @@ var path = require('path');
 exports = module.exports = new Util();
 
 /**
- * Expose `ViewManager`.
+ * Expose `Util`.
  */
 
 exports.Util = Util;

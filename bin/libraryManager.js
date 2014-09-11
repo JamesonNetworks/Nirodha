@@ -1,6 +1,7 @@
 var fs = require('fs');
-var logger = require('./logging.js');
+var logger = require('jslogging');
 var async = require('async');
+
 var constants = require('./constants.js');
 
 var LIBRARY_NOT_FOUND = 'There is no view or library file which corresponds to the request';
@@ -33,30 +34,26 @@ function LibraryManager() {
 
 }
 
-var notFound = function(res) {
-
-};
-
 // Accepts a response object and parses a view into it
 LibraryManager.prototype.init = function(libraries, jsfiles, cssfiles) {
 	Libraries = libraries;
 	JSFiles = jsfiles === null ? [] : jsfiles;
 	CSSFiles = cssfiles === null ? [] : cssfiles;
-	logger.log('Libraries contained in current lm: ' + JSON.stringify(Libraries), 7);
+	logger.debug('Libraries contained in current lm: ' + JSON.stringify(Libraries));
 };
 
-getLibraryContents = function(uri, callback) {
+var getLibraryContents = function(uri, callback) {
 	var found = false;
 	var type;
-	logger.log('Entering getLibraryContents...', 7);
-	logger.log(JSON.stringify(Libraries), 7);
+	logger.debug('Entering getLibraryContents...');
+	logger.debug(JSON.stringify(Libraries));
 	for(var i = 0; i < Libraries.length; i++) {
 		for(var k = 0; k < Libraries[i].length; k++) {
-			//logger.log(Libraries[i][k].fileNames, 7);
+			logger.debug(Libraries[i][k].fileNames, 7);
 			if(Libraries[i][k].fileNames.indexOf(uri) > -1) {
 				var path  = Libraries[i][k].dir + '/' + uri;
 				var pageText = fs.readFileSync(path).toString();
-				logger.log('Writing file from path: ' + path, 7);
+				logger.info('Writing file from path: ' + path);
 				callback(pageText, true);
 			}
 		}

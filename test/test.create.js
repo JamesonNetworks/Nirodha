@@ -2,9 +2,19 @@ var os = require('os');
 var fs = require('fs');
 
 var should = require('should');
+var async = require('async');
+var logger = require('jslogging');
+
 var testing = require('../testing.json');
 var create = require('../bin/create.js');
-var async = require('async');
+
+try {
+  var settings = require('../settings.json');
+}
+catch(err) {
+  logger.warn('No settings file found, using default settings...');
+  var settings = require('../settings_template.json');
+}
 
 // Set up test variables
 var savedworkingdirectory = process.cwd();
@@ -39,8 +49,8 @@ suite('CreateSuite', function() {
 		var args = [];
 		var projectpath = temppath + args[0];
 
-		create(args, function(testing_code) {
-			testing_code.should.equal(testing.createsuite.unknown);
+		create(args, settings, function(testing_code) {
+			testing_code.should.equal(testing.create.unknown);
 		});
 	});
 
@@ -59,8 +69,8 @@ suite('CreateSuite', function() {
 				cb();
 			},
 			function(cb) {
-				create(args, function(testing_code) {
-					testing_code.should.equal(testing.createsuite.projectcreated);
+				create(args, settings, function(testing_code) {
+					testing_code.should.equal(testing.nirodhaManager.projectcreated);
 					cb();
 				});
 			},
@@ -79,8 +89,8 @@ suite('CreateSuite', function() {
 	test('Create a project which already exists', function(done) {
 		var args = [testproject];
 		var projectpath = temppath + args[0];
-		create(args, function(testing_code) {
-			testing_code.should.equal(testing.createsuite.projectexists);
+		create(args, settings, function(testing_code) {
+			testing_code.should.equal(testing.create.projectexists);
 			done();
 		});
 	});
@@ -90,15 +100,15 @@ suite('CreateSuite', function() {
 		var projectpath = temppath + args[0];
 		async.series([
 			function(cb) {
-				create(args, function(testing_code) {
+				create(args, settings, function(testing_code) {
 					process.chdir(projectpath);
 					cb();
 				});
 			},
 			function(cb) {
 				var view_args = ["view", "newview"];
-				create(view_args, function(testing_code) {
-					testing_code.should.equal(testing.createsuite.viewcreated);
+				create(view_args, settings, function(testing_code) {
+					testing_code.should.equal(testing.nirodhaManager.viewcreated);
 					cb();
 				});
 			},

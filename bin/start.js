@@ -32,14 +32,14 @@ var walkSync = utils.walkSync;
 
 // Filters
 var isHtmlFile = utils.isHtmlFile;
-
 var isJsFile = utils.isJsFile;
-
 var isCssFile = utils.isCssFile;
 
 var rootDirectory;
 
-module.exports = function (args) {
+module.exports = function (args, settings) {
+	var nm = require('./nirodhaManager.js');
+	nm.setSettings(settings);
 	if(args.length > 0) {
 		rootDirectory = args[0];
 	}
@@ -144,10 +144,8 @@ module.exports = function (args) {
 							if(htmlFiles[i] === URI) {
 								logger.log('A matching view for ' + req.url + ' has been found, reading and serving the page...');
 
-								// Get a handle to a VM object
-								var vm = require('./viewManager.js');
 								logger.log('Serving ' + rootDirectory + ' as root directory and ' + URI + ' as view');
-								vm.init(rootDirectory, URI);
+								nm.init(URI, rootDirectory);
 
 								// Set the headers to NEVER cache results
 								res.writeHead(200, {
@@ -155,7 +153,7 @@ module.exports = function (args) {
 									'cache-control':'no-cache'
 								});
 								// Call into the ViewManager and parse the pages
-								vm.parse(res);
+								nm.parse(res);
 							}
 
 						}
@@ -250,14 +248,4 @@ module.exports = function (args) {
 				}
 			});
 	});
-
-
-	//var templateFiles = loadModules('thtml');
-
-
-	// Export all of the libraries that can be loaded from both the Nirodha base folder
-	// and the custom libraries inside of the Nirodha project
-
-
-
 };

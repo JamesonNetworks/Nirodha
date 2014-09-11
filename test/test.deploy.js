@@ -7,6 +7,14 @@ var create = require('../bin/create.js');
 var deploy = require('../bin/deploy.js');
 var async = require('async');
 
+try {
+  var settings = require('../settings.json');
+}
+catch(err) {
+  logger.warn('No settings file found, using default settings...');
+  var settings = require('../settings_template.json');
+}
+
 // Set up test variables
 var savedworkingdirectory = process.cwd();
 var currentworkingdirectory;
@@ -22,8 +30,8 @@ suite('DeploySuite', function() {
 	test('Deploy index view', function(done) {
 		async.series([
 			function(cb) {
-				deploy(['index'], function(testing_code) {
-					testing_code.should.equal(testing.deploysuite.viewdeployed);
+				deploy(['index'], settings, function(testing_code) {
+					testing_code.should.equal(testing.nirodhaManager.viewdeployed);
 				});
 				cb();
 			}
@@ -35,8 +43,8 @@ suite('DeploySuite', function() {
 	test('Deploy newview view', function(done) {
 		async.series([
 			function(cb) {
-				deploy(['newview'], function(testing_code) {
-					testing_code.should.equal(testing.deploysuite.viewdeployed);
+				deploy(['newview'], settings, function(testing_code) {
+					testing_code.should.equal(testing.nirodhaManager.viewdeployed);
 				});
 				cb();
 			}
