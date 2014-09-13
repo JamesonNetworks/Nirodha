@@ -13,10 +13,6 @@ suite('Settings Suite', function() {
 		settings.should.not.be.empty;
 	});
 
-	test('Path should be a string', function() {
-		settings.path_to_nirodha.should.be.a.string;
-	});
-
 	test('Port should be a number and between 1 and 65535',function() {
 		settings.port.should.be.a.number;
 		settings.port.should.be.above(0).and.below(65536);

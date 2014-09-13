@@ -134,3 +134,7 @@ Util.prototype.hasDuplicateLibraries = function(libraries) {
   // If the libraries by name have no length, we can skip this, def no duplicates
   return librariesByName.length > 0 ? (_.uniq(librariesByName).length !== librariesByName.length) : false;
 };
+
+Util.prototype.getNirodhaPath = function () {
+  return path.join(path.dirname(fs.realpathSync(__filename)), '../');
+};

@@ -262,6 +262,8 @@ function insertLibrariesAt(text, libobject, callback) {
 
 function createView(settings, viewname, optdirectory, callback) {
 	var dir;
+	var nirodhaPath  = utils.getNirodhaPath();
+
 	async.series([
 		function(cb) {
 			if(optdirectory) {
@@ -276,7 +278,7 @@ function createView(settings, viewname, optdirectory, callback) {
 		function(cb) {
 			// Copy in the default view
 			logger.debug('Copying the default view, this is settings: ' + JSON.stringify(settings));
-			copyFile(settings.path_to_nirodha + 'tmpl/defaultView.html', dir + viewname + '.html', function(err) {
+			copyFile(nirodhaPath + 'tmpl/defaultView.html', dir + viewname + '.html', function(err) {
 				if(err) {
 					logger.warn('Problem copying default view: ' + err, 0);
 					cb(err);
@@ -290,7 +292,7 @@ function createView(settings, viewname, optdirectory, callback) {
 		function(cb) {
 			// Copy in the default javascript
 			logger.log('Copying the default view javascript, this is settings: ' + JSON.stringify(settings));
-			copyFile(settings.path_to_nirodha + 'tmpl/defaultView.js', dir + 'custom/js/' + viewname + '.js', function(err) {
+			copyFile(nirodhaPath + 'tmpl/defaultView.js', dir + 'custom/js/' + viewname + '.js', function(err) {
 				if(err) {
 					logger.warn('Problem copying default js: ' + err, 0);
 					cb(err);
@@ -303,7 +305,7 @@ function createView(settings, viewname, optdirectory, callback) {
 		},
 		function(cb) {
 			// Copy in the default css
-			copyFile(settings.path_to_nirodha + 'tmpl/defaultView.css', dir + 'custom/css/' + viewname + '.css', function(err) {
+			copyFile(nirodhaPath + 'tmpl/defaultView.css', dir + 'custom/css/' + viewname + '.css', function(err) {
 				if(err) {
 					logger.warn('Problem copying default css: ' + err, 0);
 					cb(err);
@@ -316,7 +318,7 @@ function createView(settings, viewname, optdirectory, callback) {
 		},
 		function(cb) {
 			// Copy in the default json accessories
-			copyFile(settings.path_to_nirodha + 'tmpl/defaultView.json', dir + viewname + '.json', function(err) {
+			copyFile(nirodhaPath + 'tmpl/defaultView.json', dir + viewname + '.json', function(err) {
 				if(err) {
 					logger.warn('Problem copying default css: ' + err, 0);
 					cb(err);
@@ -329,7 +331,7 @@ function createView(settings, viewname, optdirectory, callback) {
 		},
 		function(cb) {
 			// Copy in the default view templates
-			copyFile(settings.path_to_nirodha + 'tmpl/defaultView_templates.html', dir + 'custom/templates/' + viewname + '_templates.html', function(err) {
+			copyFile(nirodhaPath + 'tmpl/defaultView_templates.html', dir + 'custom/templates/' + viewname + '_templates.html', function(err) {
 				if(err) {
 					logger.warn('Problem copying default view: ' + err, 0);
 					cb(err);
@@ -615,7 +617,7 @@ nirodhaManager.prototype.deploy = function(settings, view, callback) {
 		throw Error('No view specified!');
 	}
 
-	var searchDirectories = utils.getSearchDirectories(settings.path_to_nirodha);
+	var searchDirectories = utils.getSearchDirectories(utils.getNirodhaPath());
 
 	/*
 	*	Parse the libraries included in the thtml

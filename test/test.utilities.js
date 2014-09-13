@@ -48,15 +48,15 @@ suite('UtilitySuite', function() {
   });
 
   test('Testing getSearchDirectories', function() {
-    var expectedDirectories = ['./custom', settings.path_to_nirodha + 'libs', 'custom/static', 'bower_components'];
-    var searchDirectories = util.getSearchDirectories(settings.path_to_nirodha);
+    var expectedDirectories = ['./custom', util.getNirodhaPath() + 'libs', 'custom/static', 'bower_components'];
+    var searchDirectories = util.getSearchDirectories(util.getNirodhaPath());
     searchDirectories[0].should.equal(expectedDirectories[0]);
     searchDirectories[1].should.equal(expectedDirectories[1]);
     searchDirectories[2].should.equal(expectedDirectories[2]);
   });
 
   test('Testing deriveLibraries', function() {
-    var searchDirectories = util.getSearchDirectories(settings.path_to_nirodha);
+    var searchDirectories = util.getSearchDirectories(util.getNirodhaPath());
     searchDirectories[1] = './custom';
     var resultingLibraries = 
       [ 
@@ -87,7 +87,7 @@ suite('UtilitySuite', function() {
   });
 
   test('Testing deriveLibraries: create error on multiple libraries with same name', function() {
-    var searchDirectories = util.getSearchDirectories(settings.path_to_nirodha);
+    var searchDirectories = util.getSearchDirectories(util.getNirodhaPath());
     searchDirectories[1] = './custom';
     var resultingLibraries = 
       [ 

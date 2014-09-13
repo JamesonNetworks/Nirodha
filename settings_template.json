@@ -1,5 +1,4 @@
 {
-	"path_to_nirodha": "./",
 	"log_level" : 6,
 	"port": 80
 }
