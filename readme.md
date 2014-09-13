@@ -54,6 +54,20 @@ nirodha -d index
 Compiles the index view for deployment. This will take all of the referenced js and css files, put them into one
 consolidated file, and then minify those assets.
 
+You can also run 
+```shell
+nirodha -d
+```
+by itself, this will deploy all of the views in the directory.
+
+### 'Watching' a project
+
+From inside the project directory:
+```shell
+nirodha -w
+```
+This will look for changes to the file system and run a deploy when any of the project files change. This is useful for embedding nirodha projects into other projects and serving the files without constantly redeploying from the commandline.
+
 # Purpose
 
 I created Nirodha to be a simple website generator and compiler to eliminate some of the pain in developing client
