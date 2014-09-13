@@ -1,4 +1,5 @@
 var should = require('should');
+var logger = require('jslogging');
 try {
   var settings = require('../settings.json');
 }
