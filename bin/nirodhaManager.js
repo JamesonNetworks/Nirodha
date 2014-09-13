@@ -627,6 +627,17 @@ nirodhaManager.prototype.deploy = function(settings, view, callback) {
 		if(utils.hasDuplicateLibraries(libraries)) {
 			throw Error('Duplicate libraries found. This occurs when two js or css libraries have conflicting names. Resolve the conflict in your libraries before continuing.');
 		}
+
+		if(!fs.existsSync('deploy')) {
+			fs.mkdirSync('deploy');
+		}
+		if(!fs.existsSync('deploy/js')) {
+			fs.mkdirSync('deploy/js');
+		}
+		if(!fs.existsSync('deploy/css')) {
+			fs.mkdirSync('deploy/css');
+		}
+		
 		var jsFiles = "";
 		var cssFiles = "";
 

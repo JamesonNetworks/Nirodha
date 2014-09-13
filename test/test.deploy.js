@@ -22,6 +22,25 @@ var currentworkingdirectory;
 var temppath = os.tmpdir();
 var testproject = "TestProject";
 
+function rmDir(dirPath) {
+	try { 
+		var files = fs.readdirSync(dirPath); 
+	}
+	catch(e) { 
+		return; 
+	}
+	if (files.length > 0) {
+		for (var i = 0; i < files.length; i++) {
+			var filePath = dirPath + '/' + files[i];
+			if (fs.statSync(filePath).isFile())
+				fs.unlinkSync(filePath);
+			else
+				rmDir(filePath);
+		}
+		fs.rmdirSync(dirPath);
+	}
+};
+
 suite('DeploySuite', function() {
 	setup(function() {
 		// Switch directory to a temp directory
@@ -45,6 +64,20 @@ suite('DeploySuite', function() {
 	test('Deploy newview view', function(done) {
 		async.series([
 			function(cb) {
+				deploy(['newview'], settings, function(testing_code) {
+					testing_code.should.equal(testing.nirodhaManager.viewdeployed);
+					cb();
+				});
+			}
+		], function() {
+			done();
+		});
+	});
+
+	test('Deploy newview view when directories are missing', function(done) {
+		async.series([
+			function(cb) {
+				rmDir('deploy');
 				deploy(['newview'], settings, function(testing_code) {
 					testing_code.should.equal(testing.nirodhaManager.viewdeployed);
 					cb();
