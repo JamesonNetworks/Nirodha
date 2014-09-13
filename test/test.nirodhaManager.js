@@ -21,7 +21,7 @@ catch(err) {
 // Set up test variables
 var savedworkingdirectory = process.cwd();
 var currentworkingdirectory;
-var temppath = os.tmpdir();
+var temppath = os.tmpdir() + '/';
 var testproject = "TestProject";
 
 suite('NirodhaManagerSuite', function() {
@@ -97,7 +97,7 @@ suite('NirodhaManagerSuite', function() {
 
     async.series([
       function(cb) {
-        nm.setRootDirectory(os.tmpdir() + testing.create.testproject + '/');
+        nm.setRootDirectory(os.tmpdir() + '/' + testing.create.testproject + '/');
         nm.setHtmlFiles(["index.html"]);
         nm.handleRequest(req, res, cb);
       }
@@ -128,7 +128,7 @@ suite('NirodhaManagerSuite', function() {
 
     async.series([
       function(cb) {
-        nm.setRootDirectory(os.tmpdir() + testing.create.testproject + '/');
+        nm.setRootDirectory(os.tmpdir() + '/' + testing.create.testproject + '/');
         nm.setHtmlFiles(["index.html"]);
         nm.handleRequest(req, res, cb);
       }
@@ -140,7 +140,7 @@ suite('NirodhaManagerSuite', function() {
 
   test('Testing handleRequest with css file', function(done) {
     // Change directory into the test project
-    process.chdir(os.tmpdir() + testing.create.testproject + '/');
+    process.chdir(os.tmpdir() + '/' + testing.create.testproject + '/');
 
     // Mock up reqeust and response objects
     var req = {};
@@ -162,7 +162,7 @@ suite('NirodhaManagerSuite', function() {
 
     async.series([
       function(cb) {
-        nm.setRootDirectory(os.tmpdir() + testing.create.testproject + '/');
+        nm.setRootDirectory(os.tmpdir() + '/' + testing.create.testproject + '/');
         nm.setHtmlFiles(["index.css"]);
         nm.handleRequest(req, res, cb);
       }
@@ -174,7 +174,7 @@ suite('NirodhaManagerSuite', function() {
 
   test('Testing handleRequest with js file', function(done) {
     // Change directory into the test project
-    process.chdir(os.tmpdir() + testing.create.testproject + '/');
+    process.chdir(os.tmpdir() + '/' + testing.create.testproject + '/');
 
     // Mock up reqeust and response objects
     var req = {};
@@ -196,7 +196,7 @@ suite('NirodhaManagerSuite', function() {
 
     async.series([
       function(cb) {
-        nm.setRootDirectory(os.tmpdir() + testing.create.testproject + '/');
+        nm.setRootDirectory(os.tmpdir() + '/' + testing.create.testproject + '/');
         nm.setHtmlFiles(["index.js"]);
         nm.handleRequest(req, res, cb);
       }
@@ -228,7 +228,7 @@ suite('NirodhaManagerSuite', function() {
     logger.log('Current working directory: ' + process.cwd());
     async.series([
       function(cb) {
-        nm.setRootDirectory(os.tmpdir() + testing.create.testproject + '/');
+        nm.setRootDirectory(os.tmpdir() + '/' + testing.create.testproject + '/');
         nm.setHtmlFiles(["index.png"]);
         nm.handleRequest(req, res, cb);
       }

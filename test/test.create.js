@@ -19,7 +19,7 @@ catch(err) {
 // Set up test variables
 var savedworkingdirectory = process.cwd();
 var currentworkingdirectory;
-var temppath = os.tmpdir();
+var temppath = os.tmpdir() + '/';
 var testproject = testing.create.testproject;
 
 deleteFolderRecursive = function(path) {
@@ -76,10 +76,10 @@ suite('CreateSuite', function() {
 				});
 			},
 			function(cb) {
-				fs.existsSync(os.tmpdir() + testproject + '/custom').should.be.true;
-				fs.existsSync(os.tmpdir() + testproject + '/deploy').should.be.true;
-				fs.existsSync(os.tmpdir() + testproject + '/index.html').should.be.true;
-				fs.existsSync(os.tmpdir() + testproject + '/index.json').should.be.true;
+				fs.existsSync(os.tmpdir() + '/' + testproject + '/custom').should.be.true;
+				fs.existsSync(os.tmpdir() + '/'  + testproject + '/deploy').should.be.true;
+				fs.existsSync(os.tmpdir() + '/'  + testproject + '/index.html').should.be.true;
+				fs.existsSync(os.tmpdir() + '/'  + testproject + '/index.json').should.be.true;
 				cb();
 			}
 		], function() {
@@ -114,8 +114,8 @@ suite('CreateSuite', function() {
 				});
 			},
 			function(cb) {
-				fs.existsSync(os.tmpdir() + testproject + '/newview.html').should.be.true;
-				fs.existsSync(os.tmpdir() + testproject + '/newview.json').should.be.true;
+				fs.existsSync(os.tmpdir() + '/'  + testproject + '/newview.html').should.be.true;
+				fs.existsSync(os.tmpdir() + '/'  + testproject + '/newview.json').should.be.true;
 				cb();
 			}
 		], function() {

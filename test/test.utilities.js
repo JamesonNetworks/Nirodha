@@ -19,7 +19,7 @@ catch(err) {
 // Set up test variables
 var savedworkingdirectory = process.cwd();
 var currentworkingdirectory;
-var temppath = os.tmpdir();
+var temppath = os.tmpdir() + '/';
 var testproject = "TestProject";
 
 suite('UtilitySuite', function() {
