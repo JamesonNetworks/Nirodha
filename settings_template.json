@@ -1,5 +1,5 @@
 {
-	"path_to_nirodha": "/Users/bjameson/Development/Code/Nirodha/",
+	"path_to_nirodha": "./",
 	"log_level" : 6,
 	"port": 80
 }
