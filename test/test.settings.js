@@ -1,5 +1,11 @@
 var should = require('should');
-var settings = require('../settings.json');
+try {
+  var settings = require('../settings.json');
+}
+catch(err) {
+  logger.warn('No settings file found, using default settings...');
+  var settings = require('../settings_template.json');
+}
 
 suite('Settings Suite', function() {
 	test('Test Settings.js exists', function() {
