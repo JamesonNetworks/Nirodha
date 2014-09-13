@@ -35,7 +35,7 @@ module.exports = function (args, settings) {
 		rootDirectory = './';
 	}
 
-	searchDirectories = utils.getSearchDirectories(settings.path_to_nirodha);
+	searchDirectories = utils.getSearchDirectories(utils.getNirodhaPath());
 
 	var htmlFiles = fs.readdirSync(rootDirectory).toString().split(',').filter(isHtmlFile);
 
