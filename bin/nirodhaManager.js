@@ -18,6 +18,19 @@ var scriptEnd = '"></script>\n';
 var styleStart = '<link rel="stylesheet" href="';
 var styleEnd = '">\n';
 
+var LIBRARY_NOT_FOUND = 'There is no view or library file which corresponds to the request';
+var mimeTypes = {
+    "html": "text/html",
+    "jpeg": "image/jpeg",
+    "jpg": "image/jpeg",
+    "png": "image/png",
+    "js": "text/javascript",
+    "css": "text/css",
+    "gif": "image/gif",
+    "ico": "image/gif",
+    "svg": "image/svg+xml"
+};
+
 var view;
 var directory;
 
@@ -469,6 +482,9 @@ function handleRequest (req, res, rootDirectory, htmlFiles, callback) {
 			lm.serveLibrary(URI, res, callback);
 		}
 		else if(URI === '') {
+			if(typeof(htmlFiles)=== 'undefined') {
+				throw Error('htmlFiles not defined in nirodhaManager');
+			}
 			logger.log('There was no request URI, serving links to each view...');
 			var pageText = '';
 			for(var k = 0; k < htmlFiles.length; k++) {
@@ -514,10 +530,6 @@ function handleRequest (req, res, rootDirectory, htmlFiles, callback) {
 				}
 
 				if (stats.isFile()) {
-					// path exists, is a file
-					logger.log('constants: ' + JSON.stringify(constants), 7);
-					logger.log('extension: ' + path.extname(filename).split(".")[1], 7);
-
 					var mimeType = mimeTypes[path.extname(filename).split(".")[1]];
 					logger.log('mimeType: ' + mimeType, 7);
 					res.writeHead(200, {'Content-Type': mimeType} );
@@ -550,10 +562,12 @@ nirodhaManager.prototype.setRootDirectory = function(rtDir) {
 
 nirodhaManager.prototype.setHtmlFiles = function(htFiles) {
 	this.htmlFiles = htFiles;
+	logger.info('HTML Files: ' + this.htmlFiles);
 };
 
 nirodhaManager.prototype.handleRequest = function(req, res, done) {
-	return handleRequest(req, res, this.rootDirectory, this.htmlFiles, done);
+	logger.info('HTML Files: ' + this.htmlFiles);
+	handleRequest(req, res, this.rootDirectory, this.htmlFiles, done);
 };
 
 nirodhaManager.prototype.setSettings = function(settings) {

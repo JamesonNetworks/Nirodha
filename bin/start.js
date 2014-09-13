@@ -11,19 +11,6 @@ var utils = require('./utilities.js');
 // Handle to library manager
 var lm = require('./libraryManager.js');
 
-var LIBRARY_NOT_FOUND = 'There is no view or library file which corresponds to the request';
-var mimeTypes = {
-    "html": "text/html",
-    "jpeg": "image/jpeg",
-    "jpg": "image/jpeg",
-    "png": "image/png",
-    "js": "text/javascript",
-    "css": "text/css",
-    "gif": "image/gif",
-    "ico": "image/gif",
-    "svg": "image/svg+xml"
-};
-
 var searchDirectories = [];
 
 // Method to get all files in directories
@@ -83,7 +70,10 @@ module.exports = function (args, settings) {
 			logger.log('Creating server ...');
 			nm.setRootDirectory(rootDirectory);
 			nm.setHtmlFiles(htmlFiles);
-			var server = http.createServer(nm.handleRequest).listen(settings.port);
+
+			var server = http.createServer(function(req, res) {
+				nm.handleRequest(req, res);
+			}).listen(settings.port);
 
 			server.on('error', function (err) {
 				logger.log('An error occured, ' + err, 1);
