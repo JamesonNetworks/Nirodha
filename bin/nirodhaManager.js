@@ -84,10 +84,8 @@ function copyFile(source, target, cb) {
 	}
 }
 
-function generateJsAndCSSForIncludeSection(text, libobject, view, callback) {
+function generateJsAndCSSForIncludeSection(libobject, view) {
 	logger.log('In generateJsAndCSSForIncludeSection...', 6);
-	var firstPartOfPage = text.substring(0, text.indexOf(libobject.title));
-	var lastPartOfPage = text.substring(text.indexOf(libobject.title) + libobject.title.length, text.length);
 
 	var jsPageText = '';
 	var cssPageText = '';
@@ -103,11 +101,6 @@ function generateJsAndCSSForIncludeSection(text, libobject, view, callback) {
 
 			var jsfiles = libobject.libs.js;
 			logger.log('JS Library lengths: ' + jsfiles.length, 7);
-			// Insert references to the new js library files
-			var jsincludes = "";
-
-			jsincludes = (scriptStart + '/js/' + view  + '-' + title + '.js' + scriptEnd);
-			lastPartOfPage = jsincludes + lastPartOfPage;
 
 			if(jsfiles.length === 0) {
 				cb(null, null);
@@ -123,7 +116,7 @@ function generateJsAndCSSForIncludeSection(text, libobject, view, callback) {
 				};
 				for(var i = 0; i < jsfiles.length; i++) {
 
-					logger.log('Inserting the following js library: ' + jsfiles[i], 7);
+					logger.log('Inserting the following js library: ' + jsfiles[i]);
 					lm.getLibraryContentsAsString(jsfiles[i], libraryCallback);
 
 					if(i == jsfiles.length-1) {
@@ -140,9 +133,6 @@ function generateJsAndCSSForIncludeSection(text, libobject, view, callback) {
 
 			var cssfiles = libobject.libs.css;
 			logger.log('CSS Library length: ' + cssfiles.length, 7);
-
-			cssincludes = (styleStart + '/css/' + view + '-' + title + '.css' + styleEnd);
-			lastPartOfPage = cssincludes + lastPartOfPage;
 
 			if(cssfiles.length === 0) {
 				cb(null, null);
@@ -161,13 +151,14 @@ function generateJsAndCSSForIncludeSection(text, libobject, view, callback) {
 					lm.getLibraryContentsAsString(cssfiles[i], libraryCallback);
 
 					if(i == cssfiles.length-1) {
-						cb(null, null);
+						cb(null, cssincludes);
 					}
 				}
 			}
 		}
 	], 
 	function(err, results) {
+		logger.debug('Results in generateCss: ' + JSON.stringify(results));
 		// Write the files out
 		fs.writeFileSync('./deploy/js/' + view + '-' + title + '.js.temp', jsPageText);
 		fs.writeFileSync('./deploy/css/' + view + '-' + title + '.css.temp', cssPageText);
@@ -193,7 +184,7 @@ function generateJsAndCSSForIncludeSection(text, libobject, view, callback) {
 					logger.log(JSON.stringify(err), 3);
 				}
 				fs.unlinkSync('./deploy/css/' + view + '-' + title + '.css.temp');
-				callback(firstPartOfPage + lastPartOfPage);
+				logger.debug('Results returning from generateCSs: ' + JSON.stringify(results));
 				}
 			});
 			}
@@ -567,11 +558,11 @@ nirodhaManager.prototype.setRootDirectory = function(rtDir) {
 
 nirodhaManager.prototype.setHtmlFiles = function(htFiles) {
 	this.htmlFiles = htFiles;
-	logger.info('HTML Files: ' + this.htmlFiles);
+	logger.debug('HTML Files: ' + this.htmlFiles);
 };
 
 nirodhaManager.prototype.handleRequest = function(req, res, done) {
-	logger.info('HTML Files: ' + this.htmlFiles);
+	logger.debug('HTML Files: ' + this.htmlFiles);
 	handleRequest(req, res, this.rootDirectory, this.htmlFiles, done);
 };
 
@@ -617,7 +608,7 @@ nirodhaManager.prototype.deploy = function(settings, view, callback) {
 	var views = [];
 	if(!view) {
 
-		logger.info('No view specified!');
+		logger.debug('No view specified!');
 		logger.info('Deploying all...');
 
 		views = fs.readdirSync('./');
@@ -678,6 +669,11 @@ nirodhaManager.prototype.deploy = function(settings, view, callback) {
 		logger.log('Library manager init...');
 		lm.init(libraries, jsFiles, cssFiles)
 
+		logger.log(JSON.stringify(views));
+
+		if(typeof(callback) !== 'undefined' ) {
+			callback(testing.nirodhaManager.viewdeployed);
+		}
 		// TODO: Fix this includes
 		_.each(views, function(view) {
 			// Get the page text for the view by removing the .html portion of the request and parsing the view
@@ -685,10 +681,6 @@ nirodhaManager.prototype.deploy = function(settings, view, callback) {
 			// var jsPageText = '';
 			// var cssPageText = '';
 			var includes = JSON.parse(fs.readFileSync(view + '.json').toString());
-
-			var addToPageText = function(finalText) {
-				pageText = finalText;
-			};
 
 			// var jsfiles = includes.js;
 			// var cssfiles = includes.css;
@@ -708,11 +700,15 @@ nirodhaManager.prototype.deploy = function(settings, view, callback) {
 			async.series([
 					// Generate the css and js libraries and minify for each library section
 					function(cb) {
+						var includeSections = [];
 						for(var i = 0; i < includes.length; i++) {
 							logger.log('index: ' + i);
-							generateJsAndCSSForIncludeSection(pageText, includes[i], view, addToPageText);
+							generateJsAndCSSForIncludeSection(includes[i], view);
+							if(i === includes.length-1) {
+
+								cb(null, includeSections);
+							}
 						}
-						cb(null, null);
 					},
 					// Add in the templates
 					function(cb) {
@@ -764,11 +760,21 @@ nirodhaManager.prototype.deploy = function(settings, view, callback) {
 				], 
 				// Write out the final html file
 				function(err, results) {
+					logger.log(JSON.stringify(results));
+					logger.debug(pageText);
 					logger.log('Writing final html file...');
-					fs.writeFileSync('./deploy/' + view + '.html', pageText);
-					if(typeof(callback) !== 'undefined') {
-						callback(testing.nirodhaManager.viewdeployed);					
+					for(var i = 0; i < includes.length; i++) {
+						var libobject = includes[i];
+						var title = libobject.title.substring(1, libobject.title.length-1);
+						var firstPartOfPage = pageText.substring(0, pageText.indexOf(libobject.title));
+						var lastPartOfPage = pageText.substring(pageText.indexOf(libobject.title) + libobject.title.length, pageText.length);
+						var jsincludes = (scriptStart + '/js/' + view  + '-' + title + '.js' + scriptEnd);
+						var cssincludes = (styleStart + '/css/' + view + '-' + title + '.css' + styleEnd);
+						pageText = firstPartOfPage + jsincludes + cssincludes + lastPartOfPage;
 					}
+
+
+					fs.writeFileSync('./deploy/' + view + '.html', pageText);
 				});
 			});
 		});

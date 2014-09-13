@@ -127,9 +127,9 @@ Util.prototype.hasDuplicateLibraries = function(libraries) {
     }
   }
   logger.info('Libraries count:');
-  logger.info(JSON.stringify(librariesByName));
+  logger.info(JSON.stringify(librariesByName.length));
   logger.info('Unique Libraries count:');
-  logger.info(JSON.stringify(_.uniq(librariesByName)));
+  logger.info(JSON.stringify(_.uniq(librariesByName).length));
   logger.info('Are they the same? ' + _.uniq(librariesByName).length === librariesByName.length);
   // If the libraries by name have no length, we can skip this, def no duplicates
   return librariesByName.length > 0 ? (_.uniq(librariesByName).length !== librariesByName.length) : false;
