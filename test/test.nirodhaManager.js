@@ -107,6 +107,37 @@ suite('NirodhaManagerSuite', function() {
     });
   });
 
+  test('Testing handleRequest with html file and querystring', function(done) {
+    // Mock up reqeust and response objects
+    var req = {};
+    req.url = '/index.html?q=test';
+
+    var res = {};
+    res.writeHead = function(string) {
+      this.head = string;
+    };
+    res.write = function(string) {
+      this.write = string;
+    };
+    res.end = function() {
+
+    };
+    res.send = function(string) {
+      this.send = string;
+    };
+
+    async.series([
+      function(cb) {
+        nm.setRootDirectory(os.tmpdir() + testing.create.testproject + '/');
+        nm.setHtmlFiles(["index.html"]);
+        nm.handleRequest(req, res, cb);
+      }
+    ], function(err, result) {
+      result[0].should.equal(testing.nirodhaManager.html);
+      done();
+    });
+  });
+
   test('Testing handleRequest with css file', function(done) {
     // Change directory into the test project
     process.chdir(os.tmpdir() + testing.create.testproject + '/');

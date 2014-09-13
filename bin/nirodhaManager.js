@@ -458,9 +458,11 @@ function handleRequest (req, res, rootDirectory, htmlFiles, callback) {
 		if(URI.indexOf('html') > 0) {
 			// Look for the file in the html file list
 			logger.log('HtmlFiles length: ' + htmlFiles.length);
+			URI = URI.split('?')[0];
 			for(var i = 0; i < htmlFiles.length; i++) {
+				logger.log('Current file: ' + htmlFiles[i]);
 				logger.log('Comparing ' + htmlFiles[i] + ' to ' + URI);
-				if(htmlFiles[i] === URI) {
+				if(htmlFiles[i] === URI.split('?')[0]) {
 					logger.log('A matching view for ' + req.url + ' has been found, reading and serving the page...');
 
 					logger.log('Serving ' + rootDirectory + ' as root directory and ' + URI + ' as view');
