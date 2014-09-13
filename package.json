@@ -1,6 +1,6 @@
 {
   "name": "nirohda",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Website deployment software",
   "homepage": "http://www.jamesonnetworks.com",
   "author": "Brent Jameson <brent@jamesonnetworks.com>",
@@ -10,7 +10,8 @@
     "node-minify": "0.8.x",
     "colors": "0.6.x",
     "jslogging": "0.1.x",
-    "underscore": "1.7.x"
+    "underscore": "1.7.x",
+    "watch": "0.11.x"
   },
   "devDependencies": {
     "mocha": "1.17.x",

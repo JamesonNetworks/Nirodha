@@ -3,7 +3,8 @@ var logger = require('jslogging'),
 	async = require('async'),
 	compressor = require('node-minify'),
 	url = require('url'),
-	path = require('path');
+	path = require('path'),
+	_ = require('underscore');
 
 var utils = require('./utilities.js');
 var lm = require('./libraryManager.js');
@@ -613,8 +614,26 @@ nirodhaManager.prototype.findCSSFiles = function(resultFileList) {
 nirodhaManager.prototype.deploy = function(settings, view, callback) {
 
 	logger.log('Settings: ' + JSON.stringify(settings));
+	var views = [];
 	if(!view) {
-		throw Error('No view specified!');
+
+		logger.info('No view specified!');
+		logger.info('Deploying all...');
+
+		views = fs.readdirSync('./');
+		views = _.filter(views, function(filename) { 
+			if(filename.indexOf('.html') > -1) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}).map(function(filename) {
+			return filename.split('.')[0];
+		});
+	}
+	else {
+		views.push(view);		
 	}
 
 	var searchDirectories = utils.getSearchDirectories(utils.getNirodhaPath());
@@ -657,101 +676,104 @@ nirodhaManager.prototype.deploy = function(settings, view, callback) {
 		logger.log('Found the following list of CSS files in Nirodha paths: ' + JSON.stringify(cssFiles), 7);
 
 		logger.log('Library manager init...');
-		lm.init(libraries, jsFiles, cssFiles);
-
-		// Get the page text for the view by removing the .html portion of the request and parsing the view
-		var pageText = fs.readFileSync(view + '.html').toString();
-		// var jsPageText = '';
-		// var cssPageText = '';
+		lm.init(libraries, jsFiles, cssFiles)
 
 		// TODO: Fix this includes
-		var includes = JSON.parse(fs.readFileSync(view + '.json').toString());
+		_.each(views, function(view) {
+			// Get the page text for the view by removing the .html portion of the request and parsing the view
+			var pageText = fs.readFileSync(view + '.html').toString();
+			// var jsPageText = '';
+			// var cssPageText = '';
+			var includes = JSON.parse(fs.readFileSync(view + '.json').toString());
 
-		var addToPageText = function(finalText) {
-			pageText = finalText;
-		};
+			var addToPageText = function(finalText) {
+				pageText = finalText;
+			};
 
-		// var jsfiles = includes.js;
-		// var cssfiles = includes.css;
+			// var jsfiles = includes.js;
+			// var cssfiles = includes.css;
 
-		// logger.log('Included js: ' + JSON.stringify(jsfiles));
+			// logger.log('Included js: ' + JSON.stringify(jsfiles));
 
-		// // Locate the include section for javascript/css
-		// var startOfIncludes = pageText.indexOf(INCLUDES);
-		// logger.log('Includes length: ' + INCLUDES.length, 7);
-		// var endOfIncludes = startOfIncludes + INCLUDES.length;
+			// // Locate the include section for javascript/css
+			// var startOfIncludes = pageText.indexOf(INCLUDES);
+			// logger.log('Includes length: ' + INCLUDES.length, 7);
+			// var endOfIncludes = startOfIncludes + INCLUDES.length;
 
-		// logger.log('JS/CSS include start: ' + startOfIncludes, 7);
-		// logger.log('JS/CSS include end: ' + endOfIncludes, 7);
-		// var firstPartOfPage = pageText.substring(0, startOfIncludes);
-		// var lastPartOfPage = pageText.substring(endOfIncludes, pageText.length);
+			// logger.log('JS/CSS include start: ' + startOfIncludes, 7);
+			// logger.log('JS/CSS include end: ' + endOfIncludes, 7);
+			// var firstPartOfPage = pageText.substring(0, startOfIncludes);
+			// var lastPartOfPage = pageText.substring(endOfIncludes, pageText.length);
 
-		async.series([
-				// Generate the css and js libraries and minify for each library section
-				function(cb) {
-					for(var i = 0; i < includes.length; i++) {
-						logger.log('index: ' + i);
-						generateJsAndCSSForIncludeSection(pageText, includes[i], view, addToPageText);
-					}
-					cb(null, null);
-				},
-				// Add in the templates
-				function(cb) {
-					logger.log('view is : ' + view);
-					var template_filename = './custom/templates/' + view + '_templates.html';
-					logger.log('Adding the templates html to the core html file...');
-					logger.log('Loading the following file: ' + template_filename);
-					var template_text = fs.readFileSync(template_filename).toString();
-
-					var start = pageText.indexOf(TEMPLATE_KEY);
-					var end  = pageText.indexOf(TEMPLATE_KEY) + TEMPLATE_KEY.length;
-					var firstpart = pageText.substring(0, start);
-					var lastpart = pageText.substring(end, pageText.length);
-					// logger.log('template text: ' + template_text);
-					pageText = firstpart + template_text + lastpart; 
-					cb(null, null);
-				},
-				//Copy static files
-				function(cb) {
-					walkSync(searchDirectories[2], function(dir, directories, fileNames) {
-						logger.log('Directory: ' + dir, 7);
-						logger.log('FileNames: ' + JSON.stringify(fileNames), 7);
-
-						for(var i = 0; i < fileNames.length; i++) {
-							var writeDir;
-							if(err) {
-								logger.log(err, 3);
-							}
-							if(dir === 'custom/static') {
-								writeDir = 'deploy/';
-							}
-							else {
-								logger.log('Directory to write to: ' + dir.substring(searchDirectories[2].length, dir.length), 6);
-								writeDir =  'deploy' + dir.substring(searchDirectories[2].length, dir.length) + '/';
-								var folderExists = fs.existsSync(writeDir);
-								if(!folderExists) {
-									fs.mkdirSync(writeDir);
-								}
-							}
-							logger.log(writeDir + fileNames[i], 6);
-							logger.log('FileName: ' + JSON.stringify(fileNames[i]), 7);
-							var data = fs.readFileSync(dir + '/' + fileNames[i]);
-							fs.writeFileSync(writeDir + fileNames[i], data);
+			async.series([
+					// Generate the css and js libraries and minify for each library section
+					function(cb) {
+						for(var i = 0; i < includes.length; i++) {
+							logger.log('index: ' + i);
+							generateJsAndCSSForIncludeSection(pageText, includes[i], view, addToPageText);
 						}
-						//logger.log('Loading file ' + one + '/' + three, 7);
-					});
-					cb(null, null);
-				}
-			], 
-			// Write out the final html file
-			function(err, results) {
-				logger.log('Writing final html file...');
-				fs.writeFileSync('./deploy/' + view + '.html', pageText);
-				if(typeof(callback) !== 'undefined') {
-					callback(testing.nirodhaManager.viewdeployed);					
-				}
+						cb(null, null);
+					},
+					// Add in the templates
+					function(cb) {
+						logger.log('view is : ' + view);
+						var template_filename = './custom/templates/' + view + '_templates.html';
+						logger.log('Adding the templates html to the core html file...');
+						logger.log('Loading the following file: ' + template_filename);
+						var template_text = fs.readFileSync(template_filename).toString();
+
+						var start = pageText.indexOf(TEMPLATE_KEY);
+						var end  = pageText.indexOf(TEMPLATE_KEY) + TEMPLATE_KEY.length;
+						var firstpart = pageText.substring(0, start);
+						var lastpart = pageText.substring(end, pageText.length);
+						// logger.log('template text: ' + template_text);
+						pageText = firstpart + template_text + lastpart; 
+						cb(null, null);
+					},
+					//Copy static files
+					function(cb) {
+						walkSync(searchDirectories[2], function(dir, directories, fileNames) {
+							logger.log('Directory: ' + dir, 7);
+							logger.log('FileNames: ' + JSON.stringify(fileNames), 7);
+
+							for(var i = 0; i < fileNames.length; i++) {
+								var writeDir;
+								if(err) {
+									logger.log(err, 3);
+								}
+								if(dir === 'custom/static') {
+									writeDir = 'deploy/';
+								}
+								else {
+									logger.log('Directory to write to: ' + dir.substring(searchDirectories[2].length, dir.length), 6);
+									writeDir =  'deploy' + dir.substring(searchDirectories[2].length, dir.length) + '/';
+									var folderExists = fs.existsSync(writeDir);
+									if(!folderExists) {
+										fs.mkdirSync(writeDir);
+									}
+								}
+								logger.log(writeDir + fileNames[i], 6);
+								logger.log('FileName: ' + JSON.stringify(fileNames[i]), 7);
+								var data = fs.readFileSync(dir + '/' + fileNames[i]);
+								fs.writeFileSync(writeDir + fileNames[i], data);
+							}
+							//logger.log('Loading file ' + one + '/' + three, 7);
+						});
+						cb(null, null);
+					}
+				], 
+				// Write out the final html file
+				function(err, results) {
+					logger.log('Writing final html file...');
+					fs.writeFileSync('./deploy/' + view + '.html', pageText);
+					if(typeof(callback) !== 'undefined') {
+						callback(testing.nirodhaManager.viewdeployed);					
+					}
+				});
+			});
 		});
-	});
+
+
 };
 
 // Accepts a response object and parses a view into it

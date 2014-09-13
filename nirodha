@@ -15,7 +15,8 @@ var program = require('commander'),
 
 var create = require('./bin/create.js'),
   start = require('./bin/start.js'),
-  deploy = require('./bin/deploy.js');
+  deploy = require('./bin/deploy.js'),
+  watch = require('./bin/watch.js');
 
 /**
  * Try to get settings, otherwise use defaults
@@ -33,20 +34,22 @@ program
   .version('1.0.0')
   .option('-c, --create', 'Create a new Nirodha project')
   .option('-s, --start', 'Start hosting the Nirodha project, to enable compression pass withCompression to the -s switch')
-  .option('-d, --deploy', 'Transpile the Nirodha project to the deploy folder');
+  .option('-d, --deploy', 'Transpile the Nirodha project to the deploy folder')
+  .option('-w, --watch', 'Watch the directory and perform a deploy when the files change');
 
 program.parse(process.argv);
 
 if(program.create) {
   create(program.args, settings);
 }
-
 else if(program.start) {
   start(program.args, settings);
 }
-
 else if (program.deploy) {
   deploy(program.args, settings);
+}
+else if(program.watch) {
+  watch(program.args, settings);
 }
 else {
   logger.warn('No mode specified!');
