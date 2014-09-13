@@ -111,7 +111,7 @@ suite('UtilitySuite', function() {
     fs.createReadStream('./custom/js/index.js').pipe(fs.createWriteStream('./custom/css/index.js'));
     async.series(util.deriveLibraries(searchDirectories),
       function (err, libraries) {
-         util.hasDuplicateLibraries(libraries).should.equal(false);
+         util.hasDuplicateLibraries(libraries).should.equal(true);
       }
     );
   });
