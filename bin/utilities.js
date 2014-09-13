@@ -126,11 +126,11 @@ Util.prototype.hasDuplicateLibraries = function(libraries) {
       librariesByName = librariesByName.concat(_.flatten(libraries[i][k].fileNames));
     }
   }
-  logger.info('Libraries count:');
-  logger.info(JSON.stringify(librariesByName.length));
-  logger.info('Unique Libraries count:');
-  logger.info(JSON.stringify(_.uniq(librariesByName).length));
-  logger.info('Are they the same? ' + _.uniq(librariesByName).length === librariesByName.length);
+  logger.debug('Libraries count:');
+  logger.debug(JSON.stringify(librariesByName.length));
+  logger.debug('Unique Libraries count:');
+  logger.debug(JSON.stringify(_.uniq(librariesByName).length));
+  logger.debug('Are they the same? ' + _.uniq(librariesByName).length === librariesByName.length);
   // If the libraries by name have no length, we can skip this, def no duplicates
   return librariesByName.length > 0 ? (_.uniq(librariesByName).length !== librariesByName.length) : false;
 };

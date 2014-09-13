@@ -85,7 +85,7 @@ function copyFile(source, target, cb) {
 }
 
 function generateJsAndCSSForIncludeSection(libobject, view) {
-	logger.log('In generateJsAndCSSForIncludeSection...', 6);
+	logger.debug('In generateJsAndCSSForIncludeSection...');
 
 	var jsPageText = '';
 	var cssPageText = '';
@@ -100,7 +100,7 @@ function generateJsAndCSSForIncludeSection(libobject, view) {
 			logger.debug('Entering loop to add js libraries');
 
 			var jsfiles = libobject.libs.js;
-			logger.log('JS Library lengths: ' + jsfiles.length, 7);
+			logger.debug('JS Library lengths: ' + jsfiles.length);
 
 			if(jsfiles.length === 0) {
 				cb(null, null);
@@ -116,7 +116,7 @@ function generateJsAndCSSForIncludeSection(libobject, view) {
 				};
 				for(var i = 0; i < jsfiles.length; i++) {
 
-					logger.log('Inserting the following js library: ' + jsfiles[i]);
+					logger.debug('Inserting the following js library: ' + jsfiles[i]);
 					lm.getLibraryContentsAsString(jsfiles[i], libraryCallback);
 
 					if(i == jsfiles.length-1) {
@@ -604,12 +604,11 @@ nirodhaManager.prototype.findCSSFiles = function(resultFileList) {
 
 nirodhaManager.prototype.deploy = function(settings, view, callback) {
 
-	logger.log('Settings: ' + JSON.stringify(settings));
 	var views = [];
 	if(!view) {
 
 		logger.debug('No view specified!');
-		logger.info('Deploying all...');
+		logger.info('Deploying all views...');
 
 		views = fs.readdirSync('./');
 		views = _.filter(views, function(filename) { 
@@ -666,10 +665,10 @@ nirodhaManager.prototype.deploy = function(settings, view, callback) {
 		logger.log('Found the following list of JS files in Nirodha paths: ' + JSON.stringify(jsFiles), 7);
 		logger.log('Found the following list of CSS files in Nirodha paths: ' + JSON.stringify(cssFiles), 7);
 
-		logger.log('Library manager init...');
+		logger.debug('Library manager init...');
 		lm.init(libraries, jsFiles, cssFiles)
 
-		logger.log(JSON.stringify(views));
+		logger.debug(JSON.stringify(views));
 
 		if(typeof(callback) !== 'undefined' ) {
 			callback(testing.nirodhaManager.viewdeployed);
@@ -702,7 +701,7 @@ nirodhaManager.prototype.deploy = function(settings, view, callback) {
 					function(cb) {
 						var includeSections = [];
 						for(var i = 0; i < includes.length; i++) {
-							logger.log('index: ' + i);
+							logger.debug('index: ' + i);
 							generateJsAndCSSForIncludeSection(includes[i], view);
 							if(i === includes.length-1) {
 
@@ -712,10 +711,10 @@ nirodhaManager.prototype.deploy = function(settings, view, callback) {
 					},
 					// Add in the templates
 					function(cb) {
-						logger.log('view is : ' + view);
+						logger.debug('view is : ' + view);
 						var template_filename = './custom/templates/' + view + '_templates.html';
-						logger.log('Adding the templates html to the core html file...');
-						logger.log('Loading the following file: ' + template_filename);
+						logger.debug('Adding the templates html to the core html file...');
+						logger.debug('Loading the following file: ' + template_filename);
 						var template_text = fs.readFileSync(template_filename).toString();
 
 						var start = pageText.indexOf(TEMPLATE_KEY);
@@ -729,8 +728,8 @@ nirodhaManager.prototype.deploy = function(settings, view, callback) {
 					//Copy static files
 					function(cb) {
 						walkSync(searchDirectories[2], function(dir, directories, fileNames) {
-							logger.log('Directory: ' + dir, 7);
-							logger.log('FileNames: ' + JSON.stringify(fileNames), 7);
+							logger.debug('Directory: ' + dir);
+							logger.debug('FileNames: ' + JSON.stringify(fileNames));
 
 							for(var i = 0; i < fileNames.length; i++) {
 								var writeDir;
@@ -741,14 +740,14 @@ nirodhaManager.prototype.deploy = function(settings, view, callback) {
 									writeDir = 'deploy/';
 								}
 								else {
-									logger.log('Directory to write to: ' + dir.substring(searchDirectories[2].length, dir.length), 6);
+									logger.log('Directory to write to: ' + dir.substring(searchDirectories[2].length, dir.length), 7);
 									writeDir =  'deploy' + dir.substring(searchDirectories[2].length, dir.length) + '/';
 									var folderExists = fs.existsSync(writeDir);
 									if(!folderExists) {
 										fs.mkdirSync(writeDir);
 									}
 								}
-								logger.log(writeDir + fileNames[i], 6);
+								logger.log(writeDir + fileNames[i], 7);
 								logger.log('FileName: ' + JSON.stringify(fileNames[i]), 7);
 								var data = fs.readFileSync(dir + '/' + fileNames[i]);
 								fs.writeFileSync(writeDir + fileNames[i], data);
@@ -760,7 +759,7 @@ nirodhaManager.prototype.deploy = function(settings, view, callback) {
 				], 
 				// Write out the final html file
 				function(err, results) {
-					logger.log(JSON.stringify(results));
+					logger.debug(JSON.stringify(results));
 					logger.debug(pageText);
 					logger.log('Writing final html file...');
 					for(var i = 0; i < includes.length; i++) {

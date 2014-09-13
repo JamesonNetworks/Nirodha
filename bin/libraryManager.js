@@ -56,7 +56,7 @@ var getLibraryContents = function(uri, callback) {
 			if(Libraries[i][k].fileNames.indexOf(uri) > -1) {
 				var path  = Libraries[i][k].dir + '/' + uri;
 				var pageText = fs.readFileSync(path).toString();
-				logger.info('Writing file from path: ' + path);
+				logger.debug('Writing file from path: ' + path);
 				callback(pageText, true);
 			}
 		}
