@@ -19,7 +19,7 @@
     "jshint": "2.4.x"
   },
   "scripts": {
-    "test": "mocha -R spec -u tdd --recursive test/unit/"
+    "test": "mocha -R spec -u tdd --recursive test/"
   },
   "engine": "node >= 0.10.x"
 }
