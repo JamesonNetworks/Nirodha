@@ -85,4 +85,34 @@ suite('UtilitySuite', function() {
       }
     );
   });
+
+  test('Testing deriveLibraries: create error on multiple libraries with same name', function() {
+    var searchDirectories = util.getSearchDirectories(settings.path_to_nirodha);
+    searchDirectories[1] = './custom';
+    var resultingLibraries = 
+      [ 
+        [ 
+          { fileNames: [], dir: './custom' },
+          { fileNames: [ 'index.css', 'index.js', 'newview.css' ], dir: 'custom/css' },
+          { fileNames: [ 'index.js', 'newview.js' ], dir: 'custom/js' },
+          { fileNames: [], dir: 'custom/static' },
+          { fileNames: [ 'index_templates.html', 'newview_templates.html' ], dir: 'custom/templates' } 
+        ],
+        [ 
+          { fileNames: [], dir: './custom' },
+          { fileNames: [ 'index.css', 'index.js', 'newview.css' ], dir: 'custom/css' },
+          { fileNames: [ 'index.js', 'newview.js' ], dir: 'custom/js' },
+          { fileNames: [], dir: 'custom/static' },
+          { fileNames: [ 'index_templates.html', 'newview_templates.html' ], dir: 'custom/templates' } 
+        ] 
+      ];
+    process.chdir(temppath + '/TestProject/');
+    // Copy the file, and make a second index.js in a different directory to cause bad state
+    fs.createReadStream('./custom/js/index.js').pipe(fs.createWriteStream('./custom/css/index.js'));
+    async.series(util.deriveLibraries(searchDirectories),
+      function (err, libraries) {
+         util.hasDuplicateLibraries(libraries).should.equal(false);
+      }
+    );
+  });
 });

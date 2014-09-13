@@ -52,7 +52,7 @@ var getLibraryContents = function(uri, callback) {
 	}
 	for(var i = 0; i < Libraries.length; i++) {
 		for(var k = 0; k < Libraries[i].length; k++) {
-			logger.debug(Libraries[i][k].fileNames, 7);
+			logger.debug(Libraries[i][k].fileNames);
 			if(Libraries[i][k].fileNames.indexOf(uri) > -1) {
 				var path  = Libraries[i][k].dir + '/' + uri;
 				var pageText = fs.readFileSync(path).toString();

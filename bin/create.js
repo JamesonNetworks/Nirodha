@@ -28,7 +28,9 @@ module.exports = function (args, settings, callback) {
 		// Create the folder with the structure
 		if(fs.existsSync(args[0])) {
 			logger.log('Error creating directory, it already exists!', 0);
-			callback(testing.create.projectexists);
+			if(typeof(callback) !== 'undefined') {
+				callback(testing.create.projectexists);
+			}
 		}
 		else {
 			nm.createProject('./' + args[0] + '/', callback);

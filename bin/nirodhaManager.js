@@ -347,7 +347,7 @@ function createView(settings, viewname, optdirectory, callback) {
 			logger.warn(JSON.stringify(err));
 			callback(err);
 		}
-		else {
+		else if(typeof(callback) !== 'undefined') {
 			if(dir === './') {
 				callback(testing.nirodhaManager.viewcreated);
 			}
@@ -529,7 +529,7 @@ function handleRequest (req, res, rootDirectory, htmlFiles, callback) {
 					}
 				}
 
-				if (stats.isFile()) {
+				if ((typeof(stats) !== 'undefined') && stats.isFile()) {
 					var mimeType = mimeTypes[path.extname(filename).split(".")[1]];
 					logger.log('mimeType: ' + mimeType, 7);
 					res.writeHead(200, {'Content-Type': mimeType} );
@@ -622,6 +622,9 @@ nirodhaManager.prototype.deploy = function(settings, view, callback) {
 	// Start by searching the custom directories
 	async.series(utils.deriveLibraries(searchDirectories),
 	function(err, libraries) {
+		if(utils.hasDuplicateLibraries(libraries)) {
+			throw Error('Duplicate libraries found. This occurs when two js or css libraries have conflicting names. Resolve the conflict in your libraries before continuing.');
+		}
 		var jsFiles = "";
 		var cssFiles = "";
 
@@ -729,7 +732,9 @@ nirodhaManager.prototype.deploy = function(settings, view, callback) {
 			function(err, results) {
 				logger.log('Writing final html file...');
 				fs.writeFileSync('./deploy/' + view + '.html', pageText);
-				callback(testing.nirodhaManager.viewdeployed);
+				if(typeof(callback) !== 'undefined') {
+					callback(testing.nirodhaManager.viewdeployed);					
+				}
 		});
 	});
 };

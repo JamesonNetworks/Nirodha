@@ -1,5 +1,7 @@
 var fs = require('fs');
 var path = require('path');
+var _ = require('underscore');
+var logger = require('jslogging');
 
 /**
  * Expose the root.
@@ -45,6 +47,17 @@ function walkSync (start, callback) {
   } else {
     throw new Error("path: " + start + " is not a directory");
   }
+}
+
+// Some ugly hacks here
+function fileNameFilter(filename) {
+  return (
+    filename !== '.DS_Store' && 
+    filename !== '.gitignore' && 
+    filename.indexOf('.') !== -1 && 
+    filename !== 'demo.css' &&
+    filename !== 'jquery.fileupload-ui.css'
+  );
 }
 
 // Method to get all files in directories
@@ -96,10 +109,28 @@ Util.prototype.deriveLibraries = function(searchDirectories) {
     function(callback) {
       var files = [];
       walkSync(searchDirectories[1], function(dir, directories, fileNames) {
-        files.push({ "fileNames": fileNames, "dir": dir});
+        files.push({ "fileNames": _.filter(fileNames, fileNameFilter), "dir": dir});
         //logger.log('Loading file ' + one + '/' + three, 7);
       });
       callback(null, files);
     }
   ];
+};
+
+// Returns a boolean, looks for duplicate names of JS and CSS files
+Util.prototype.hasDuplicateLibraries = function(libraries) {
+  var librariesByName = [];
+  for(var i = 0; i < libraries.length; i++) {
+    for(var k = 0; k < libraries[i].length; k++) {
+      logger.debug('Libraries in loop: ' + JSON.stringify(libraries[i][k].fileNames));
+      librariesByName = librariesByName.concat(_.flatten(libraries[i][k].fileNames));
+    }
+  }
+  logger.info('Libraries count:');
+  logger.info(JSON.stringify(librariesByName));
+  logger.info('Unique Libraries count:');
+  logger.info(JSON.stringify(_.uniq(librariesByName)));
+  logger.info('Are they the same? ' + _.uniq(librariesByName).length === librariesByName.length);
+  // If the libraries by name have no length, we can skip this, def no duplicates
+  return librariesByName.length > 0 ? (_.uniq(librariesByName).length !== librariesByName.length) : false;
 };
