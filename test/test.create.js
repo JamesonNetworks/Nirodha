@@ -20,7 +20,7 @@ catch(err) {
 var savedworkingdirectory = process.cwd();
 var currentworkingdirectory;
 var temppath = os.tmpdir();
-var testproject = "TestProject";
+var testproject = testing.create.testproject;
 
 deleteFolderRecursive = function(path) {
     var files = [];
@@ -43,6 +43,7 @@ suite('CreateSuite', function() {
 	setup(function() {
 		// Switch directory to a temp directory
 		process.chdir(temppath);
+		logger.setLogLevel(-1);
 	});
 
 	test('Testing passing an unknown command', function() {

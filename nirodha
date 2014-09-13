@@ -33,33 +33,22 @@ program
   .version('1.0.0')
   .option('-c, --create', 'Create a new Nirodha project')
   .option('-s, --start', 'Start hosting the Nirodha project, to enable compression pass withCompression to the -s switch')
-  .option('-d, --deploy', 'Transpile the Nirodha project to the deploy folder'),
-  .option('--help', 'Display the help');
-
-program.on('--help', function(){
-  console.log('TODO :');
-  console.log('Make this better.');
-  console.log('');
-  console.log('The princess is in another castle.');
-  console.log('');
-});
+  .option('-d, --deploy', 'Transpile the Nirodha project to the deploy folder');
 
 program.parse(process.argv);
 
-if(!(program.create || program.start || program.deploy)) {
-  logger.warn('No mode specified!');
-  console.log("You did not specify a valid operation, perhaps you are missing a switch like '-c'? Consult 'nirodha -h' for more info");
+if(program.create) {
+  create(program.args, settings);
+}
+
+else if(program.start) {
+  start(program.args, settings);
+}
+
+else if (program.deploy) {
+  deploy(program.args, settings);
 }
 else {
-  if(program.create) {
-      create(program.args, settings);
-  }
-
-  else if(program.start) {
-    start(program.args, settings);
-  }
-
-  else (program.deploy) {
-    deploy(program.args, settings);
-  }
+  logger.warn('No mode specified!');
+  console.log("You did not specify a valid operation, perhaps you are missing a switch like '-c'? Consult 'nirodha -h' for more info");
 }

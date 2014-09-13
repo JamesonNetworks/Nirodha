@@ -1,7 +1,9 @@
 var logger = require('jslogging'),
 	fs = require('fs'),
 	async = require('async'),
-	compressor = require('node-minify');
+	compressor = require('node-minify'),
+	url = require('url'),
+	path = require('path');
 
 var utils = require('./utilities.js');
 var lm = require('./libraryManager.js');
@@ -61,9 +63,9 @@ function copyFile(source, target, cb) {
 	rd.pipe(wr);
 
 	function done(err) {
- 		if (!cbCalled) {
- 			cb(err);
- 			cbCalled = true;
+		if (!cbCalled) {
+			cb(err);
+			cbCalled = true;
 		}
 	}
 }
@@ -97,17 +99,18 @@ function generateJsAndCSSForIncludeSection(text, libobject, view, callback) {
 				cb(null, null);
 			}
 			else {
+				var libraryCallback = function(result, found) {
+					logger.log('Found ' + jsfiles[i] + '? ' + found, 7);
+					//logger.log('File contents: ' + result, 7);
+					if(found) {
+						jsPageText += result + '\n';
+						//logger.log('jsPageText so far: ' + jsPageText, 7);
+					}
+				};
 				for(var i = 0; i < jsfiles.length; i++) {
 
 					logger.log('Inserting the following js library: ' + jsfiles[i], 7);
-					lm.getLibraryContentsAsString(jsfiles[i], function(result, found) {
-						logger.log('Found ' + jsfiles[i] + '? ' + found, 7);
-						//logger.log('File contents: ' + result, 7);
-						if(found) {
-							jsPageText += result + '\n';
-							//logger.log('jsPageText so far: ' + jsPageText, 7);
-						}
-					});
+					lm.getLibraryContentsAsString(jsfiles[i], libraryCallback);
 
 					if(i == jsfiles.length-1) {
 						cb(null, null);
@@ -131,16 +134,17 @@ function generateJsAndCSSForIncludeSection(text, libobject, view, callback) {
 				cb(null, null);
 			}
 			else {
+				var libraryCallback = function(result, found) {
+					logger.log('Found ' + cssfiles[i] + '? ' + found, 7);
+					//logger.log('File contents: ' + result, 7);
+					if(found) {
+						cssPageText += result + '\n';
+						//logger.log('jsPageText so far: ' + jsPageText, 7);
+					}
+				};
 				for(var i = 0; i < cssfiles.length; i++) {
 					logger.log('Inserting the following css library: ' + cssfiles[i], 7);
-					lm.getLibraryContentsAsString(cssfiles[i], function(result, found) {
-						logger.log('Found ' + cssfiles[i] + '? ' + found, 7);
-						//logger.log('File contents: ' + result, 7);
-						if(found) {
-							cssPageText += result + '\n';
-							//logger.log('jsPageText so far: ' + jsPageText, 7);
-						}
-					});
+					lm.getLibraryContentsAsString(cssfiles[i], libraryCallback);
 
 					if(i == cssfiles.length-1) {
 						cb(null, null);
@@ -165,23 +169,21 @@ function generateJsAndCSSForIncludeSection(text, libobject, view, callback) {
 				logger.log(err, 3);
 			}
 			fs.unlinkSync('./deploy/js/' + view + '-' + title + '.js.temp');
+			new compressor.minify({
+			type: 'yui-css',
+			fileIn: './deploy/css/' + view + '-' + title + '.css.temp',
+			fileOut: './deploy/css/' + view + '-' + title + '.css',
+			callback: function(err, min){
+				if(err) {
+					logger.log('Calling error for minifying ' + './deploy/css/' + view + '-' + title + '.css.temp', 3);
+					logger.log(JSON.stringify(err), 3);
+				}
+				fs.unlinkSync('./deploy/css/' + view + '-' + title + '.css.temp');
+				callback(firstPartOfPage + lastPartOfPage);
+				}
+			});
 			}
 		});
-
-		new compressor.minify({
-		type: 'yui-css',
-		fileIn: './deploy/css/' + view + '-' + title + '.css.temp',
-		fileOut: './deploy/css/' + view + '-' + title + '.css',
-		callback: function(err, min){
-			if(err) {
-				logger.log('Calling error for minifying ' + './deploy/css/' + view + '-' + title + '.css.temp', 3);
-				logger.log(JSON.stringify(err), 3);
-			}
-			fs.unlinkSync('./deploy/css/' + view + '-' + title + '.css.temp');
-			}
-		});
-
-		callback(firstPartOfPage + lastPartOfPage);
 	});
 }
 
@@ -239,7 +241,7 @@ function insertLibrariesAt(text, libobject, callback) {
 	], 
 	function(err, results) {
 		logger.debug('Inserting the following js results: ' + results[0]);
-		logger.dbeug('Inserting the following css results: ' + results[1]);
+		logger.debug('Inserting the following css results: ' + results[1]);
 		
 		callback(firstpart + results[0].toString() + results[1].toString() + lastpart);
 	});
@@ -343,9 +345,220 @@ function createView(settings, viewname, optdirectory, callback) {
 	});
 }
 
+function findCSSFiles(resultFileList) {
+	var returnableJsFiles = "";
+	//logger.log('in findJsFiles: Result files list: ' + resultFileList[i], 7);
+	for(var i = 0; i < resultFileList.length; i++) {
+		//logger.log('in findJsFiles: Result files list: ' + JSON.stringify(resultFileList[i].fileNames), 7);
+		//logger.log('in findJsFiles: Result files list: ' + JSON.stringify(resultFileList[i].fileNames.filter(isJsFile)), 7);
+		if(resultFileList[i].fileNames.filter(isCssFile).length > 0) {
+			//logger.log('Js files are : ' + resultFileList[i].fileNames.filter(isJsFile), 7);
+			returnableJsFiles += resultFileList[i].fileNames.filter(isCssFile).toString() + ',';
+		}
+	}
+	return returnableJsFiles;
+}
+
+function findJsFiles(resultFileList) {
+	var returnableJsFiles = "";
+	//logger.log('in findJsFiles: Result files list: ' + resultFileList[i], 7);
+	for(var i = 0; i < resultFileList.length; i++) {
+		//logger.log('in findJsFiles: Result files list: ' + JSON.stringify(resultFileList[i].fileNames), 7);
+		//logger.log('in findJsFiles: Result files list: ' + JSON.stringify(resultFileList[i].fileNames.filter(isJsFile)), 7);
+		if(resultFileList[i].fileNames.filter(isJsFile).length > 0) {
+			//logger.log('Js files are : ' + resultFileList[i].fileNames.filter(isJsFile), 7);
+			returnableJsFiles += resultFileList[i].fileNames.filter(isJsFile).toString() + ',';
+		}
+	}
+	return returnableJsFiles;
+}
+
+function parse(res, directory, view, callback) {
+	/*
+	*	Parse the libraries included in the thtml
+	*/
+	logger.log('Directory: ' + directory);
+	logger.log('View: ' + view);
+	if(typeof(directory) === 'undefined') {
+		directory = this.directory;
+	}
+	if(typeof(view) === 'undefined') {
+		view = this.view;
+	}
+
+	logger.log('Directory: ' + directory);
+	logger.log('View: ' + view);
+
+	if(typeof(view) === 'undefined' || typeof(directory) === 'undefined') {
+		logger.log('Invalid directory: ' + directory + ' or view: ' + view);
+		throw new Error('Invalid arguments passed to nirodhaManager.parse');
+	}
+
+	// Get the page text for the view by removing the .html portion of the request and parsing the view
+	var pageText = fs.readFileSync(directory + view).toString();
+
+	var includes = JSON.parse(fs.readFileSync(directory + view.substring(0, view.length-5) + '.json').toString());
+
+	// Get a list of the strings to search for in the html file
+
+	var addToPageText = function(finalText) {
+		pageText = finalText;
+	};
+
+	async.series([
+		function(cb) {
+			for(var i = 0; i < includes.length; i++) {
+				// logger.log('index: ' + i + ' , pageText: ' + pageText);
+				insertLibrariesAt(pageText, includes[i], addToPageText);
+			}
+			cb();
+		},
+		function(cb) {
+			// Add templates in
+			var template_filename = directory + '/custom/templates/' + view.substring(0, view.length-5) + '_templates.html';
+			logger.log('Adding the templates html to the core html file...');
+			logger.log('Loading the following file: ' + template_filename);
+			var template_text = fs.readFileSync(template_filename).toString();
+
+			var start = pageText.indexOf(TEMPLATE_KEY);
+			var end  = pageText.indexOf(TEMPLATE_KEY) + TEMPLATE_KEY.length;
+			var firstpart = pageText.substring(0, start);
+			var lastpart = pageText.substring(end, pageText.length);
+			res.end(firstpart + template_text + lastpart);
+			cb();
+		}
+	], function(err, result) {
+		if(typeof(callback) !== 'undefined') {
+			callback(null, testing.nirodhaManager.html);
+		}
+	});
+}
+
+function handleRequest (req, res, rootDirectory, htmlFiles, callback) {
+	logger.log('req.url: ' + req.url);
+	if(req.url) {
+		// Parse the request url
+		var URI = req.url.substring(1, req.url.length);
+		logger.log('Requested URI is: ' + URI, 7);
+		logger.log('Index of html in uri: ' + (URI.indexOf('html') > 0), 7);
+
+		if(URI.indexOf('html') > 0) {
+			// Look for the file in the html file list
+			logger.log('HtmlFiles length: ' + htmlFiles.length);
+			for(var i = 0; i < htmlFiles.length; i++) {
+				logger.log('Comparing ' + htmlFiles[i] + ' to ' + URI);
+				if(htmlFiles[i] === URI) {
+					logger.log('A matching view for ' + req.url + ' has been found, reading and serving the page...');
+
+					logger.log('Serving ' + rootDirectory + ' as root directory and ' + URI + ' as view');
+
+					// Set the headers to NEVER cache results
+					res.writeHead(200, {
+						'Content-Type': 'text/html',
+						'cache-control':'no-cache'
+					});
+					// Call into the ViewManager and parse the pages
+					parse(res, rootDirectory, URI, callback);
+				}
+
+			}
+		}
+		// Look for a library matching the request
+		else if(URI.indexOf('.js') > 0 || URI.indexOf('.css') > 0) {
+			logger.log('Handing ' + req.url + ' to the library manager...');
+			lm.serveLibrary(URI, res, callback);
+		}
+		else if(URI === '') {
+			logger.log('There was no request URI, serving links to each view...');
+			var pageText = '';
+			for(var k = 0; k < htmlFiles.length; k++) {
+				pageText += '<a href='+ htmlFiles[k] + '> ' + htmlFiles[k] + '</a> \n';
+			}
+			// Set the headers to NEVER cache results
+			res.writeHead(200, {
+				'Content-Type': 'text/html',
+				'cache-control':'no-cache'
+			});
+			res.write(pageText);
+			res.end();
+		}
+		// Look for a static file in the static files directory
+		else {
+			var uri = url.parse(req.url).pathname;
+			var filename = path.join(rootDirectory + '/custom/static/', unescape(uri));
+			var stats;
+
+			logger.log('Attempting to serve a static asset matching ' + uri);
+			logger.log('Using ' + filename + ' as filename...', 7);
+
+			if(typeof(callback) !== 'undefined') {
+				callback(null, testing.nirodhaManager.notfound);
+			}
+			else {
+				if (fs.existsSync(filename)) {
+					stats = fs.lstatSync(filename);
+				}
+				else {
+					filename = path.join(rootDirectory + '/static/', unescape(uri));
+					logger.log('No matching asset found in project custom directory for ' + uri + '...', 4);
+					logger.log('Attempting to serve a static asset matching from libs ' + uri);
+					logger.log('Using ' + filename + ' as filename...', 7);
+
+					if(fs.existsSync(filename)) {
+						logger.log('No static asset was found for ' + filename + '...', 4);
+						res.writeHead(404, {'Content-Type': 'text/plain'});
+						res.write('404 Not Found\n');
+						res.end();
+						return;
+					}
+				}
+
+				if (stats.isFile()) {
+					// path exists, is a file
+					logger.log('constants: ' + JSON.stringify(constants), 7);
+					logger.log('extension: ' + path.extname(filename).split(".")[1], 7);
+
+					var mimeType = mimeTypes[path.extname(filename).split(".")[1]];
+					logger.log('mimeType: ' + mimeType, 7);
+					res.writeHead(200, {'Content-Type': mimeType} );
+
+					var fileStream = fs.createReadStream(filename);
+					fileStream.pipe(res);
+				}
+				else {
+					// Symbolic link, other?
+					// TODO: follow symlinks?  security?
+					res.writeHead(500, {'Content-Type': 'text/plain'});
+					res.write('500 Internal server error\n');
+					res.end();
+				}
+			}
+		}
+	}
+	else {
+		res.send(404);
+		if(typeof(callback) !== 'undefined') {
+			logger.log(JSON.stringify(req.url));
+			callback();
+		}
+	}
+}
+
+nirodhaManager.prototype.setRootDirectory = function(rtDir) {
+	this.rootDirectory = rtDir;
+};
+
+nirodhaManager.prototype.setHtmlFiles = function(htFiles) {
+	this.htmlFiles = htFiles;
+};
+
+nirodhaManager.prototype.handleRequest = function(req, res, done) {
+	return handleRequest(req, res, this.rootDirectory, this.htmlFiles, done);
+};
+
 nirodhaManager.prototype.setSettings = function(settings) {
 	this.settings = settings;
-}
+};
 
 nirodhaManager.prototype.createProject = function(directoryName, callback) {
 	logger.log('Creating directory: ' + directoryName, 7);
@@ -359,16 +572,24 @@ nirodhaManager.prototype.createProject = function(directoryName, callback) {
 	fs.mkdirSync(directoryName + 'deploy/css');
 	fs.mkdirSync(directoryName + 'custom/static');
 	createView(this.settings, 'index', directoryName, callback);
-}
+};
 
 nirodhaManager.prototype.createView = function(viewname, optdirectory, callback) {
 	logger.log('In createView... ' + JSON.stringify(this.settings));
 	createView(this.settings, viewname, optdirectory, callback);
-}
+};
 
 nirodhaManager.prototype.init = function(pView, pDirectory) {
 	directory = pDirectory;
 	view = pView;
+};
+
+nirodhaManager.prototype.findJsFiles = function(resultFileList) {
+	return findJsFiles(resultFileList);
+};
+
+nirodhaManager.prototype.findCSSFiles = function(resultFileList) {
+	return findCSSFiles(resultFileList);
 };
 
 nirodhaManager.prototype.deploy = function(settings, view, callback) {
@@ -378,65 +599,17 @@ nirodhaManager.prototype.deploy = function(settings, view, callback) {
 		throw Error('No view specified!');
 	}
 
-	// Set up search
-	searchDirectories.push('./custom');
-	searchDirectories.push(settings.path_to_nirodha + 'libs');
-	searchDirectories.push('custom/static');
+	var searchDirectories = utils.getSearchDirectories(settings.path_to_nirodha);
 
 	/*
 	*	Parse the libraries included in the thtml
 	*/
 
 	// Start by searching the custom directories
-async.series([
-	function(callback) {
-		var files = [];
-		walkSync(searchDirectories[0], function(dir, directories, fileNames) {
-			files.push({ "fileNames": fileNames, "dir": dir});
-			//logger.log('Loading file ' + one + '/' + three, 7);
-		});
-		callback(null, files);
-	},
-	function(callback) {
-		var files = [];
-		walkSync(searchDirectories[1], function(dir, directories, fileNames) {
-			files.push({ "fileNames": fileNames, "dir": dir});
-			//logger.log('Loading file ' + one + '/' + three, 7);
-		});
-		callback(null, files);
-	}
-	],
+	async.series(utils.deriveLibraries(searchDirectories),
 	function(err, libraries) {
 		var jsFiles = "";
 		var cssFiles = "";
-
-		var findJsFiles = function(resultFileList) {
-			var returnableJsFiles = "";
-			//logger.log('in findJsFiles: Result files list: ' + resultFileList[i], 7);
-			for(var i = 0; i < resultFileList.length; i++) {
-				//logger.log('in findJsFiles: Result files list: ' + JSON.stringify(resultFileList[i].fileNames), 7);
-				//logger.log('in findJsFiles: Result files list: ' + JSON.stringify(resultFileList[i].fileNames.filter(isJsFile)), 7);
-				if(resultFileList[i].fileNames.filter(isJsFile).length > 0) {
-					//logger.log('Js files are : ' + resultFileList[i].fileNames.filter(isJsFile), 7);
-					returnableJsFiles += resultFileList[i].fileNames.filter(isJsFile).toString() + ',';
-				}
-			}
-			return returnableJsFiles;
-		};
-
-		var findCSSFiles = function(resultFileList) {
-			var returnableJsFiles = "";
-			//logger.log('in findJsFiles: Result files list: ' + resultFileList[i], 7);
-			for(var i = 0; i < resultFileList.length; i++) {
-				//logger.log('in findJsFiles: Result files list: ' + JSON.stringify(resultFileList[i].fileNames), 7);
-				//logger.log('in findJsFiles: Result files list: ' + JSON.stringify(resultFileList[i].fileNames.filter(isJsFile)), 7);
-				if(resultFileList[i].fileNames.filter(isCssFile).length > 0) {
-					//logger.log('Js files are : ' + resultFileList[i].fileNames.filter(isJsFile), 7);
-					returnableJsFiles += resultFileList[i].fileNames.filter(isCssFile).toString() + ',';
-				}
-			}
-			return returnableJsFiles;
-		};
 
 		jsFiles = findJsFiles(libraries[0]);
 		jsFiles += ',' + findJsFiles(libraries[1]);
@@ -542,49 +715,12 @@ async.series([
 			function(err, results) {
 				logger.log('Writing final html file...');
 				fs.writeFileSync('./deploy/' + view + '.html', pageText);
-				callback(testing.nirodhaManager.viewdeployed)
+				callback(testing.nirodhaManager.viewdeployed);
 		});
 	});
 };
 
 // Accepts a response object and parses a view into it
 nirodhaManager.prototype.parse = function(res) {
-
-/*
-*	Parse the libraries included in the thtml
-*/
-
-	// Get the page text for the view by removing the .html portion of the request and parsing the view
-	var pageText = fs.readFileSync(directory + view).toString();
-
-	var includes = JSON.parse(fs.readFileSync(directory + view.substring(0, view.length-5) + '.json').toString());
-
-	// Get a list of the strings to search for in the html file
-
-	var addToPageText = function(finalText) {
-		pageText = finalText;
-	};
-
-	async.series([
-		function(cb) {
-			for(var i = 0; i < includes.length; i++) {
-				// logger.log('index: ' + i + ' , pageText: ' + pageText);
-				insertLibrariesAt(pageText, includes[i], addToPageText);
-			}
-			cb();
-		},
-		function(cb) {
-			// Add templates in
-			var template_filename = directory + '/custom/templates/' + view.substring(0, view.length-5) + '_templates.html';
-			logger.log('Adding the templates html to the core html file...');
-			logger.log('Loading the following file: ' + template_filename);
-			var template_text = fs.readFileSync(template_filename).toString();
-
-			var start = pageText.indexOf(TEMPLATE_KEY);
-			var end  = pageText.indexOf(TEMPLATE_KEY) + TEMPLATE_KEY.length;
-			var firstpart = pageText.substring(0, start);
-			var lastpart = pageText.substring(end, pageText.length);
-			res.end(firstpart + template_text + lastpart);
-		}
-	]);
+	parse(res);
 };

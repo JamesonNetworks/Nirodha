@@ -1,14 +1,43 @@
 {
 	"create": {
 		"unknown": "UNKNOWN_COMMAND",
-		"projectexists": "projectexists"
+		"projectexists": "projectexists",
+		"testproject": "TestProject"
 	},
 	"nirodhaManager": {
 		"viewcreated": "viewcreated",
 		"projectcreated": "projectcreated",
-		"viewdeployed": "viewdeployed"
+		"viewdeployed": "viewdeployed",
+		"notfound": "notfound",
+		"html": "html"
+	},
+	"libraryManager": {
+		"jscss": "jscss",
+		"notfound": "notfound",
+		"error": "error"
 	},
 	"deploy": {
 
-	}
+	},
+	"directoryList": [
+		{
+			"fileNames": [		
+				"test.js",
+				"test.css",
+				"test.html",
+				"test" 
+			],
+			"dir": ["./"]
+		},
+		{
+			"fileNames": [		
+				"test.js",
+				"test.css",
+				"test",
+				"test.txt",
+				"test.bower" 
+			],
+			"dir": ["./test"]
+		}
+	]
 }

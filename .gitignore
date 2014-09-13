@@ -6,3 +6,5 @@ npm-debug.log
 test/garbage/*
 coverage/*
 test-reports.xml
+bower_components/
+bower.json

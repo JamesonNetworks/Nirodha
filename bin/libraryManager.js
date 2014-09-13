@@ -1,6 +1,7 @@
 var fs = require('fs');
 var logger = require('jslogging');
 var async = require('async');
+var testing = require('../testing.json');
 
 var constants = require('./constants.js');
 
@@ -34,7 +35,6 @@ function LibraryManager() {
 
 }
 
-// Accepts a response object and parses a view into it
 LibraryManager.prototype.init = function(libraries, jsfiles, cssfiles) {
 	Libraries = libraries;
 	JSFiles = jsfiles === null ? [] : jsfiles;
@@ -47,6 +47,9 @@ var getLibraryContents = function(uri, callback) {
 	var type;
 	logger.debug('Entering getLibraryContents...');
 	logger.debug(JSON.stringify(Libraries));
+	if(typeof(Libraries) === 'undefined') {
+		throw Error('No libraries defined, did you call LibraryManager.init first?');
+	}
 	for(var i = 0; i < Libraries.length; i++) {
 		for(var k = 0; k < Libraries[i].length; k++) {
 			logger.debug(Libraries[i][k].fileNames, 7);
@@ -65,7 +68,7 @@ LibraryManager.prototype.getLibraryContentsAsString = function(uri, callback) {
 };
 
 // Accepts a response object and parses a view into it
-LibraryManager.prototype.serveLibrary = function(uri, res) {
+LibraryManager.prototype.serveLibrary = function(uri, res, callback) {
 	var type = uri.indexOf('js') > 0 ? 'js' : 'css';
 	getLibraryContents(uri, function(pageText, found) {
 		if(found) {
@@ -75,22 +78,27 @@ LibraryManager.prototype.serveLibrary = function(uri, res) {
 					'cache-control':'no-cache'
 				});
 				res.end(pageText);
+				if(typeof(callback) !== 'undefined') {
+					callback(null, testing.libraryManager.jscss);
+				}
 			}
-			else if(type === 'css') {
+			else {
 				res.writeHead(200, {
 					'Content-Type': 'text/css',
 					'cache-control':'no-cache'
 				});
 				res.end(pageText);
-			}
-			else {
-				res.writeHead(500, {'Content-Type': 'text/plain'});
-				res.end('Internal server error');
+				if(typeof(callback) !== 'undefined') {
+					callback(null, testing.libraryManager.jscss);
+				}
 			}
 		}
 		else {
 			res.writeHead(404, {'Content-Type': 'text/plain'});
 			res.end(constants.LIBRARY_NOT_FOUND + ' ' + uri);
+			if(typeof(callback) !== 'undefined') {
+				callback(null, testing.libraryManager.notfound);
+			}
 		}
 	});
 };

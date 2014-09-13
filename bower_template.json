@@ -1,0 +1,30 @@
+{
+  "name": "Nirodha",
+  "version": "1.0.0",
+  "authors": [
+    "Brent Jameson <brent@jamesonnetworks.com>"
+  ],
+  "description": "A website creation and deployment manager",
+  "main": "nirodha",
+  "keywords": [
+    "web",
+    "css",
+    "js",
+    "javascript",
+    "management",
+    "productivity",
+    "dev"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/JamesonNetworks/Nirodha",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.2.0"
+  }
+}

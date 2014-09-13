@@ -17,8 +17,7 @@ function Util() {
 
 }
 
-// Method to get all files in directories
-Util.prototype.walkSync = function (start, callback) {
+function walkSync (start, callback) {
   var stat = fs.statSync(start);
 
   if (stat.isDirectory()) {
@@ -46,6 +45,11 @@ Util.prototype.walkSync = function (start, callback) {
   } else {
     throw new Error("path: " + start + " is not a directory");
   }
+}
+
+// Method to get all files in directories
+Util.prototype.walkSync = function (start, callback) {
+  walkSync(start, callback);
 };
 
 // Filters
@@ -62,4 +66,40 @@ Util.prototype.isJsFile = function(element) {
 Util.prototype.isCssFile = function(element) {
 	//logger.log(element + ', Is this a CSS file? ' + (element.indexOf('.css') > 0));
 	return element.indexOf('.css') > 0;
+};
+
+Util.prototype.getSearchDirectories = function(nirodhaPath) {
+  var directories = [];
+
+    // Set up search
+  directories.push('./custom');
+  directories.push(nirodhaPath + 'libs');
+  directories.push('custom/static');
+
+  return directories;
+};
+
+// This is a weird looking one, I apologize. It's getting passed
+// into async as a series of functions to be executed, it has to
+// happen in two places, so I pulled it out and threw it here. 
+// Probably pretty awful to see it without context.
+Util.prototype.deriveLibraries = function(searchDirectories) {
+  return [
+    function(callback) {
+      var files = [];
+      walkSync(searchDirectories[0], function(dir, directories, fileNames) {
+        files.push({ "fileNames": fileNames, "dir": dir});
+        //logger.log('Loading file ' + one + '/' + three, 7);
+      });
+      callback(null, files);
+    },
+    function(callback) {
+      var files = [];
+      walkSync(searchDirectories[1], function(dir, directories, fileNames) {
+        files.push({ "fileNames": fileNames, "dir": dir});
+        //logger.log('Loading file ' + one + '/' + three, 7);
+      });
+      callback(null, files);
+    }
+  ];
 };

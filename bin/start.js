@@ -1,5 +1,5 @@
 var http = require('http');
-var logger = require('./logging.js');
+var logger = require('jslogging');
 var fs = require('fs');
 var path = require('path');
 var settings = require('../settings.json');
@@ -7,7 +7,6 @@ var async = require('async');
 var constants = require('./constants.js');
 var url = require('url');
 var utils = require('./utilities.js');
-var settings = require('../settings.json');
 
 // Handle to library manager
 var lm = require('./libraryManager.js');
@@ -40,6 +39,8 @@ var rootDirectory;
 module.exports = function (args, settings) {
 	var nm = require('./nirodhaManager.js');
 	nm.setSettings(settings);
+
+	var rootDirectory;
 	if(args.length > 0) {
 		rootDirectory = args[0];
 	}
@@ -47,75 +48,28 @@ module.exports = function (args, settings) {
 		rootDirectory = './';
 	}
 
-	// Set up search
-	searchDirectories.push(rootDirectory + '/custom');
-	searchDirectories.push(settings.path_to_nirodha + 'libs');
+	searchDirectories = utils.getSearchDirectories(settings.path_to_nirodha);
 
 	var htmlFiles = fs.readdirSync(rootDirectory).toString().split(',').filter(isHtmlFile);
 
 	// Start by searching the custom directories
-	async.series([
-		function(callback) {
-			var files = [];
-			walkSync(searchDirectories[0], function(dir, directories, fileNames) {
-				files.push({ "fileNames": fileNames, "dir": dir});
-				//logger.log('Loading file ' + one + '/' + three, 7);
-			});
-			callback(null, files);
-		},
-		function(callback) {
-			var files = [];
-			walkSync(searchDirectories[1], function(dir, directories, fileNames) {
-				files.push({ "fileNames": fileNames, "dir": dir});
-				//logger.log('Loading file ' + one + '/' + three, 7);
-			});
-			callback(null, files);
-		}
-		],
+	async.series(utils.deriveLibraries(searchDirectories),
 		function (err, libraries) {
 
-			logger.log('HTML Files loaded: ' + JSON.stringify(htmlFiles), 7);
+			logger.log('HTML Files loaded: ' + JSON.stringify(htmlFiles));
 			//logger.log('Files in ' + searchDirectories[0] + ': ' + JSON.stringify(libraries[0]), 7);
 			//logger.log('Files in ' + searchDirectories[1] + ': ' + JSON.stringify(libraries[1]), 7);
 
 			var jsFiles = "";
 			var cssFiles = "";
 
-			var findJsFiles = function(resultFileList) {
-				var returnableJsFiles = "";
-				//logger.log('in findJsFiles: Result files list: ' + resultFileList[i], 7);
-				for(var i = 0; i < resultFileList.length; i++) {
-					//logger.log('in findJsFiles: Result files list: ' + JSON.stringify(resultFileList[i].fileNames), 7);
-					//logger.log('in findJsFiles: Result files list: ' + JSON.stringify(resultFileList[i].fileNames.filter(isJsFile)), 7);
-					if(resultFileList[i].fileNames.filter(isJsFile).length > 0) {
-						//logger.log('Js files are : ' + resultFileList[i].fileNames.filter(isJsFile), 7);
-						returnableJsFiles += resultFileList[i].fileNames.filter(isJsFile).toString() + ',';
-					}
-				}
-				return returnableJsFiles;
-			};
-
-			var findCSSFiles = function(resultFileList) {
-				var returnableJsFiles = "";
-				//logger.log('in findJsFiles: Result files list: ' + resultFileList[i], 7);
-				for(var i = 0; i < resultFileList.length; i++) {
-					//logger.log('in findJsFiles: Result files list: ' + JSON.stringify(resultFileList[i].fileNames), 7);
-					//logger.log('in findJsFiles: Result files list: ' + JSON.stringify(resultFileList[i].fileNames.filter(isJsFile)), 7);
-					if(resultFileList[i].fileNames.filter(isCssFile).length > 0) {
-						//logger.log('Js files are : ' + resultFileList[i].fileNames.filter(isJsFile), 7);
-						returnableJsFiles += resultFileList[i].fileNames.filter(isCssFile).toString() + ',';
-					}
-				}
-				return returnableJsFiles;
-			};
-
-			jsFiles = findJsFiles(libraries[0]);
-			jsFiles += ',' + findJsFiles(libraries[1]);
+			jsFiles = nm.findJsFiles(libraries[0]);
+			jsFiles += ',' + nm.findJsFiles(libraries[1]);
 			logger.log('JS files is : ' + jsFiles, 7);
 			jsFiles = jsFiles.split(',');
 
-			cssFiles = findCSSFiles(libraries[0]);
-			cssFiles += ',' + findCSSFiles(libraries[1]);
+			cssFiles = nm.findCSSFiles(libraries[0]);
+			cssFiles += ',' + nm.findCSSFiles(libraries[1]);
 			logger.log('CSS files is : ' + cssFiles, 7);
 			cssFiles = cssFiles.split(',');
 
@@ -127,116 +81,9 @@ module.exports = function (args, settings) {
 			lm.init(libraries, jsFiles, cssFiles);
 
 			logger.log('Creating server ...');
-
-			var server = http.createServer(function (req, res) {
-				logger.log('req.url: ' + req.url, 7);
-				// 
-				if(req.url) {
-					// Parse the request url
-					var URI = req.url.substring(1, req.url.length);
-					logger.log('Requested URI is: ' + URI, 7);
-					logger.log('Index of html in uri: ' + (URI.indexOf('html') > 0), 7);
-					if(URI.indexOf('html') > 0) {
-						// Look for the file in the html file list
-						logger.log('HtmlFiles length: ' + htmlFiles.length);
-						for(var i = 0; i < htmlFiles.length; i++) {
-							logger.log('Comparing ' + htmlFiles[i] + ' to ' + URI);
-							if(htmlFiles[i] === URI) {
-								logger.log('A matching view for ' + req.url + ' has been found, reading and serving the page...');
-
-								logger.log('Serving ' + rootDirectory + ' as root directory and ' + URI + ' as view');
-								nm.init(URI, rootDirectory);
-
-								// Set the headers to NEVER cache results
-								res.writeHead(200, {
-									'Content-Type': 'text/html',
-									'cache-control':'no-cache'
-								});
-								// Call into the ViewManager and parse the pages
-								nm.parse(res);
-							}
-
-						}
-					}
-					// Look for a library matching the request
-					else if(URI.indexOf('.js') > 0 || URI.indexOf('.css') > 0) {
-
-						logger.log('Handing ' + req.url + ' to the library manager...');
-						lm.serveLibrary(URI, res);
-					}
-					else if(URI === '') {
-						logger.log('There was no request URI, serving links to each view...');
-						var pageText = '';
-						for(var i = 0; i < htmlFiles.length; i++) {
-							pageText += '<a href='+ htmlFiles[i] + '> ' + htmlFiles[i] + '</a> \n';
-						}
-						// Set the headers to NEVER cache results
-						res.writeHead(200, {
-							'Content-Type': 'text/html',
-							'cache-control':'no-cache'
-						});
-						res.write(pageText);
-						res.end();
-					}
-					// Look for a static file in the static files directory
-					else {
-						var uri = url.parse(req.url).pathname;
-						var filename = path.join(rootDirectory + '/custom/static/', unescape(uri));
-						var stats;
-
-						logger.log('Attempting to serve a static asset matching ' + uri);
-						logger.log('Using ' + filename + ' as filename...', 7);
-						try {
-							stats = fs.lstatSync(filename); // throws if path doesn't exist
-						} 
-						catch (e) {
-							filename = path.join(rootDirectory + '/static/', unescape(uri));
-							logger.log('No matching asset found in project custom directory for ' + uri + '...', 4);
-							logger.log('Attempting to serve a static asset matching from libs ' + uri);
-							logger.log('Using ' + filename + ' as filename...', 7);
-
-							try {
-								stats = fs.lstatSync(filename); // throws if path doesn't exist
-							} 
-							catch (e) {
-								logger.log('No static asset was found for ' + filename + '...', 4);
-								res.writeHead(404, {'Content-Type': 'text/plain'});
-								res.write('404 Not Found\n');
-								res.end();
-								return;
-							}
-
-						}
-
-
-						if (stats.isFile()) {
-							// path exists, is a file
-							logger.log('constants: ' + JSON.stringify(constants), 7);
-							logger.log('extension: ' + path.extname(filename).split(".")[1], 7);
-
-							var mimeType = mimeTypes[path.extname(filename).split(".")[1]];
-							logger.log('mimeType: ' + mimeType, 7);
-							res.writeHead(200, {'Content-Type': mimeType} );
-
-							var fileStream = fs.createReadStream(filename);
-							fileStream.pipe(res);
-						} 
-						else if (stats.isDirectory()) {
-							// path exists, is a directory
-							res.writeHead(200, {'Content-Type': 'text/plain'});
-							res.write('Requested directory, '+uri+'\n');
-							res.end();
-						} 
-						else {
-							// Symbolic link, other?
-							// TODO: follow symlinks?  security?
-							res.writeHead(500, {'Content-Type': 'text/plain'});
-							res.write('500 Internal server error\n');
-							res.end();
-						}
-					}
-				}
-			}).listen(settings.port);
+			nm.setRootDirectory(rootDirectory);
+			nm.setHtmlFiles(htmlFiles);
+			var server = http.createServer(nm.handleRequest).listen(settings.port);
 
 			server.on('error', function (err) {
 				logger.log('An error occured, ' + err, 1);

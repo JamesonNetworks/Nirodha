@@ -34,4 +34,4 @@ module.exports = function (args, settings, callback) {
 			nm.createProject('./' + args[0] + '/', callback);
 		}
 	}
-}
+};

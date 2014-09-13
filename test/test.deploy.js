@@ -6,6 +6,7 @@ var testing = require('../testing.json');
 var create = require('../bin/create.js');
 var deploy = require('../bin/deploy.js');
 var async = require('async');
+var logger = require('jslogging');
 
 try {
   var settings = require('../settings.json');
@@ -25,6 +26,7 @@ suite('DeploySuite', function() {
 	setup(function() {
 		// Switch directory to a temp directory
 		process.chdir(temppath + testproject);
+		logger.setLogLevel(-1);
 	});
 	
 	test('Deploy index view', function(done) {
@@ -32,8 +34,8 @@ suite('DeploySuite', function() {
 			function(cb) {
 				deploy(['index'], settings, function(testing_code) {
 					testing_code.should.equal(testing.nirodhaManager.viewdeployed);
+					cb();
 				});
-				cb();
 			}
 		], function() {
 			done();
@@ -45,8 +47,8 @@ suite('DeploySuite', function() {
 			function(cb) {
 				deploy(['newview'], settings, function(testing_code) {
 					testing_code.should.equal(testing.nirodhaManager.viewdeployed);
+					cb();
 				});
-				cb();
 			}
 		], function() {
 			done();
