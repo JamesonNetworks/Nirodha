@@ -1,6 +1,6 @@
 # Nirodha 
 
-[![Build Status](https://secure.travis-ci.org/JamesonNetworks/Nirodha.png)](http://travis-ci.org/JamesonNetworks/Nirodha)[![Coverage Status](https://coveralls.io/repos/JamesonNetworks/Nirodha/badge.png?branch=github)](https://coveralls.io/r/JamesonNetworks/Nirodha?branch=github)[![Dependency Status](https://david-dm.org/JamesonNetworks/Nirodha.svg?theme=shields.io)](https://david-dm.org/JamesonNetworks/Nirodha)[![devDependency Status](https://david-dm.org/alanshaw/david/dev-status.svg?theme=shields.io)](https://david-dm.org/JamesonNetworks/Nirodha#info=devDependencies)
+[![Build Status](https://secure.travis-ci.org/JamesonNetworks/Nirodha.png)](http://travis-ci.org/JamesonNetworks/Nirodha) [![Coverage Status](https://coveralls.io/repos/JamesonNetworks/Nirodha/badge.png?branch=github)](https://coveralls.io/r/JamesonNetworks/Nirodha?branch=github)[![Dependency Status](https://david-dm.org/JamesonNetworks/Nirodha.svg?theme=shields.io)](https://david-dm.org/JamesonNetworks/Nirodha)[![devDependency Status](https://david-dm.org/alanshaw/david/dev-status.svg?theme=shields.io)](https://david-dm.org/JamesonNetworks/Nirodha#info=devDependencies)
 
 Nirodha (Pali, Sanskrit; Tibetan 'gog pa) — literally refers to the absence or extinction of a given entity. As the 
 third of the four noble truths, it refers specifically to the cessation of dukkha (suffering) and its causes; it is 
