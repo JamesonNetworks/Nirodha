@@ -22,8 +22,7 @@
     "mocha-lcov-reporter": "0.0.1"
   },
   "scripts": {
-    "test": "mocha -R spec -u tdd --recursive test/",
-    "coveralls": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -u tdd -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
+    "test": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -u tdd -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
   },
   "engine": "node >= 0.10.x"
 }
