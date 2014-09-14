@@ -46,7 +46,7 @@ module.exports = function (args, settings) {
 			if(utils.hasDuplicateLibraries(libraries)) {
 				throw Error('Duplicate libraries found. This occurs when two js or css libraries have conflicting names. Resolve the conflict in your libraries before continuing.');
 			}
-			logger.log('HTML Files loaded: ' + JSON.stringify(htmlFiles));
+			logger.debug('HTML Files loaded: ' + JSON.stringify(htmlFiles));
 			//logger.log('Files in ' + searchDirectories[0] + ': ' + JSON.stringify(libraries[0]), 7);
 			//logger.log('Files in ' + searchDirectories[1] + ': ' + JSON.stringify(libraries[1]), 7);
 
@@ -55,22 +55,22 @@ module.exports = function (args, settings) {
 
 			jsFiles = nm.findJsFiles(libraries[0]);
 			jsFiles += ',' + nm.findJsFiles(libraries[1]);
-			logger.log('JS files is : ' + jsFiles, 7);
+			logger.debug('JS files is : ' + jsFiles);
 			jsFiles = jsFiles.split(',');
 
 			cssFiles = nm.findCSSFiles(libraries[0]);
 			cssFiles += ',' + nm.findCSSFiles(libraries[1]);
-			logger.log('CSS files is : ' + cssFiles, 7);
+			logger.debug('CSS files is : ' + cssFiles);
 			cssFiles = cssFiles.split(',');
 
-			logger.log('Found the following HTML files: ' + JSON.stringify(htmlFiles), 5);
-			logger.log('Found the following list of JS files in Nirodha paths: ' + JSON.stringify(jsFiles), 5);
-			logger.log('Found the following list of CSS files in Nirodha paths: ' + JSON.stringify(cssFiles), 5);
+			logger.debug('Found the following HTML files: ' + JSON.stringify(htmlFiles));
+			logger.debug('Found the following list of JS files in Nirodha paths: ' + JSON.stringify(jsFiles));
+			logger.debug('Found the following list of CSS files in Nirodha paths: ' + JSON.stringify(cssFiles));
 
-			logger.log('Library manager init...');
+			logger.debug('Library manager init...');
 			lm.init(libraries, jsFiles, cssFiles);
 
-			logger.log('Creating server ...');
+			logger.info('Creating server ...');
 			nm.setRootDirectory(rootDirectory);
 			nm.setHtmlFiles(htmlFiles);
 

@@ -384,8 +384,8 @@ function parse(res, directory, view, callback) {
 	/*
 	*	Parse the libraries included in the thtml
 	*/
-	logger.log('Directory: ' + directory);
-	logger.log('View: ' + view);
+	logger.debug('Directory: ' + directory);
+	logger.debug('View: ' + view);
 	if(typeof(directory) === 'undefined') {
 		directory = this.directory;
 	}
@@ -393,11 +393,11 @@ function parse(res, directory, view, callback) {
 		view = this.view;
 	}
 
-	logger.log('Directory: ' + directory);
-	logger.log('View: ' + view);
+	logger.debug('Directory: ' + directory);
+	logger.debug('View: ' + view);
 
 	if(typeof(view) === 'undefined' || typeof(directory) === 'undefined') {
-		logger.log('Invalid directory: ' + directory + ' or view: ' + view);
+		logger.warn('Invalid directory: ' + directory + ' or view: ' + view);
 		throw new Error('Invalid arguments passed to nirodhaManager.parse');
 	}
 
@@ -423,8 +423,8 @@ function parse(res, directory, view, callback) {
 		function(cb) {
 			// Add templates in
 			var template_filename = directory + '/custom/templates/' + view.substring(0, view.length-5) + '_templates.html';
-			logger.log('Adding the templates html to the core html file...');
-			logger.log('Loading the following file: ' + template_filename);
+			logger.debug('Adding the templates html to the core html file...');
+			logger.debug('Loading the following file: ' + template_filename);
 			var template_text = fs.readFileSync(template_filename).toString();
 
 			var start = pageText.indexOf(TEMPLATE_KEY);
@@ -442,7 +442,7 @@ function parse(res, directory, view, callback) {
 }
 
 function handleRequest (req, res, rootDirectory, htmlFiles, callback) {
-	logger.log('req.url: ' + req.url);
+	logger.debug('req.url: ' + req.url);
 	if(req.url) {
 		// Parse the request url
 		var URI = req.url.substring(1, req.url.length);
@@ -451,15 +451,15 @@ function handleRequest (req, res, rootDirectory, htmlFiles, callback) {
 
 		if(URI.indexOf('html') > 0) {
 			// Look for the file in the html file list
-			logger.log('HtmlFiles length: ' + htmlFiles.length);
+			logger.debug('HtmlFiles length: ' + htmlFiles.length);
 			URI = URI.split('?')[0];
 			for(var i = 0; i < htmlFiles.length; i++) {
-				logger.log('Current file: ' + htmlFiles[i]);
-				logger.log('Comparing ' + htmlFiles[i] + ' to ' + URI);
+				logger.debug('Current file: ' + htmlFiles[i]);
+				logger.debug('Comparing ' + htmlFiles[i] + ' to ' + URI);
 				if(htmlFiles[i] === URI.split('?')[0]) {
 					logger.log('A matching view for ' + req.url + ' has been found, reading and serving the page...');
 
-					logger.log('Serving ' + rootDirectory + ' as root directory and ' + URI + ' as view');
+					logger.debug('Serving ' + rootDirectory + ' as root directory and ' + URI + ' as view');
 
 					// Set the headers to NEVER cache results
 					res.writeHead(200, {
@@ -474,7 +474,7 @@ function handleRequest (req, res, rootDirectory, htmlFiles, callback) {
 		}
 		// Look for a library matching the request
 		else if(URI.indexOf('.js') > 0 || URI.indexOf('.css') > 0) {
-			logger.log('Handing ' + req.url + ' to the library manager...');
+			logger.debug('Handing ' + req.url + ' to the library manager...');
 			lm.serveLibrary(URI, res, callback);
 		}
 		else if(URI === '') {
