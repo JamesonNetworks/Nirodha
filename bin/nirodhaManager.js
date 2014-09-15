@@ -427,7 +427,7 @@ function parse(res, directory, view, callback) {
 }
 
 function handleRequest (req, res, rootDirectory, htmlFiles, callback) {
-	logger.debug('req.url: ' + req.url);
+	logger.info('req.url: ' + req.url);
 	if(req.url) {
 		// Parse the request url
 		var URI = req.url.substring(1, req.url.length);
@@ -478,6 +478,9 @@ function handleRequest (req, res, rootDirectory, htmlFiles, callback) {
 			});
 			res.write(pageText);
 			res.end();
+			if(typeof(callback) !== 'undefined') {
+				callback(null, testing.nirodhaManager.html);
+			}
 		}
 		// Look for a static file in the static files directory
 		else {
@@ -488,35 +491,20 @@ function handleRequest (req, res, rootDirectory, htmlFiles, callback) {
 			logger.log('Attempting to serve a static asset matching ' + uri);
 			logger.log('Using ' + filename + ' as filename...', 7);
 
-			if(typeof(callback) !== 'undefined') {
-				callback(null, testing.nirodhaManager.notfound);
-			}
-			else {
-				if (fs.existsSync(filename)) {
-					stats = fs.lstatSync(filename);
-				}
-				else {
-					filename = path.join(rootDirectory + '/static/', decodeURI(uri));
-					logger.log('No matching asset found in project custom directory for ' + uri + '...', 4);
-					logger.log('Attempting to serve a static asset matching from libs ' + uri);
-					logger.log('Using ' + filename + ' as filename...', 7);
-
-					if(fs.existsSync(filename)) {
-						logger.log('No static asset was found for ' + filename + '...', 4);
-						res.writeHead(404, {'Content-Type': 'text/plain'});
-						res.write('404 Not Found\n');
-						res.end();
-						return;
-					}
-				}
-
+			if (fs.existsSync(filename)) {
+				stats = fs.lstatSync(filename);
 				if ((typeof(stats) !== 'undefined') && stats.isFile()) {
 					var mimeType = mimeTypes[path.extname(filename).split(".")[1]];
 					logger.log('mimeType: ' + mimeType, 7);
-					res.writeHead(200, {'Content-Type': mimeType} );
 
-					var fileStream = fs.createReadStream(filename);
-					fileStream.pipe(res);
+					if(typeof(callback) !== 'undefined') {
+						callback(null, testing.nirodhaManager.file);
+					}
+					else {
+						res.writeHead(200, {'Content-Type': mimeType} );
+						var fileStream = fs.createReadStream(filename);
+						fileStream.pipe(res);
+					}
 				}
 				else {
 					// Symbolic link, other?
@@ -526,13 +514,30 @@ function handleRequest (req, res, rootDirectory, htmlFiles, callback) {
 					res.end();
 				}
 			}
+			else {
+				filename = path.join(rootDirectory + '/static/', decodeURI(uri));
+				logger.log('No matching asset found in project custom directory for ' + uri + '...', 4);
+				logger.log('Attempting to serve a static asset matching from libs ' + uri);
+				logger.log('Using ' + filename + ' as filename...', 7);
+
+				if(!fs.existsSync(filename)) {
+					logger.log('No static asset was found for ' + filename + '...', 4);
+					res.writeHead(404, {'Content-Type': 'text/plain'});
+					res.write('404 Not Found\n');
+					res.end();
+					if(typeof(callback) !== 'undefined') {
+						callback(null, testing.nirodhaManager.notfound);
+					}
+					return;
+				}
+			}
 		}
 	}
 	else {
 		res.send(404);
 		if(typeof(callback) !== 'undefined') {
 			logger.log(JSON.stringify(req.url));
-			callback();
+			callback(null, testing.nirodhaManager.notfound);
 		}
 	}
 }
@@ -590,7 +595,7 @@ NirodhaManager.prototype.findCSSFiles = function(resultFileList) {
 NirodhaManager.prototype.deploy = function(settings, view, callback) {
 
 	var views = [];
-	if(!view) {
+	if(typeof(view) === 'undefined') {
 
 		logger.debug('No view specified!');
 		logger.info('Deploying all views...');

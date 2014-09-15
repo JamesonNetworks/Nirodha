@@ -76,6 +76,39 @@ suite('NirodhaManagerSuite', function() {
     });
   });
 
+  test('Testing handleRequest with blank uri', function(done) {
+    // Mock up reqeust and response objects
+    var req = {};
+    req.url = '/';
+
+    var res = {};
+    res.writeHead = function(string) {
+      this.head = string;
+    };
+    res.write = function(string) {
+      this.write = string;
+    };
+    res.end = function() {
+
+    };
+    res.send = function(string) {
+      this.send = string;
+    };
+
+    async.series([
+      function(cb) {
+        nm.setRootDirectory('./');
+        nm.setHtmlFiles(["index.html"]);
+        nm.handleRequest(req, res, cb);
+      }
+    ], function(err, result) {
+       console.log(err);
+      console.log(result);
+      result[0].should.equal(testing.nirodhaManager.html);
+      done();
+    });
+  });
+
   test('Testing handleRequest with html file', function(done) {
     // Mock up reqeust and response objects
     var req = {};
@@ -236,5 +269,15 @@ suite('NirodhaManagerSuite', function() {
       result[0].should.equal(testing.nirodhaManager.notfound);
       done();
     });
+  });
+
+  test('nirodhaManager parse fail on bad submits', function(done) {
+    try {
+      nm.parse();
+    }
+    catch (e) {
+      e.should.not.equal(null);
+      done();
+    }
   });
 });
