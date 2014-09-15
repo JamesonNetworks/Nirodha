@@ -42,15 +42,15 @@ var walkSync = utils.walkSync;
 var isJsFile = utils.isJsFile;
 var isCssFile = utils.isCssFile;
 
-exports = module.exports = new nirodhaManager();
+exports = module.exports = new NirodhaManager();
 
 /**
  * Expose `nirodhaManager`.
  */
 
-exports.nirodhaManager = nirodhaManager;
+exports.nirodhaManager = NirodhaManager;
 
-function nirodhaManager() {
+function NirodhaManager() {
 }
 
 // Helper function for creating files
@@ -65,7 +65,7 @@ function copyFile(source, target, cb) {
 	wr.on("error", function(err) {
 		done(err);
 	});
-	wr.on("close", function(ex) {
+	wr.on("close", function() {
 		done();
 	});
 	rd.pipe(wr);
@@ -162,7 +162,7 @@ function generateJsAndCSSForIncludeSection(libobject, view) {
 		type: 'gcc',
 		fileIn: './deploy/js/' + view + '-' + title + '.js.temp',
 		fileOut: './deploy/js/' + view + '-' + title + '.js',
-		callback: function(err, min){
+		callback: function(err){
 			if(err) {
 				logger.log('Calling error for minifying ' + './deploy/js/' + view + '-' + title + '.js.temp', 3);
 				logger.log(err, 3);
@@ -172,7 +172,7 @@ function generateJsAndCSSForIncludeSection(libobject, view) {
 			type: 'yui-css',
 			fileIn: './deploy/css/' + view + '-' + title + '.css.temp',
 			fileOut: './deploy/css/' + view + '-' + title + '.css',
-			callback: function(err, min){
+			callback: function(err){
 				if(err) {
 					logger.log('Calling error for minifying ' + './deploy/css/' + view + '-' + title + '.css.temp', 3);
 					logger.log(JSON.stringify(err), 3);
@@ -418,7 +418,8 @@ function parse(res, directory, view, callback) {
 			res.end(firstpart + template_text + lastpart);
 			cb();
 		}
-	], function(err, result) {
+	], function(err) {
+		logger.warn(err);
 		if(typeof(callback) !== 'undefined') {
 			callback(null, testing.nirodhaManager.html);
 		}
@@ -536,25 +537,25 @@ function handleRequest (req, res, rootDirectory, htmlFiles, callback) {
 	}
 }
 
-nirodhaManager.prototype.setRootDirectory = function(rtDir) {
+NirodhaManager.prototype.setRootDirectory = function(rtDir) {
 	this.rootDirectory = rtDir;
 };
 
-nirodhaManager.prototype.setHtmlFiles = function(htFiles) {
+NirodhaManager.prototype.setHtmlFiles = function(htFiles) {
 	this.htmlFiles = htFiles;
 	logger.debug('HTML Files: ' + this.htmlFiles);
 };
 
-nirodhaManager.prototype.handleRequest = function(req, res, done) {
+NirodhaManager.prototype.handleRequest = function(req, res, done) {
 	logger.debug('HTML Files: ' + this.htmlFiles);
 	handleRequest(req, res, this.rootDirectory, this.htmlFiles, done);
 };
 
-nirodhaManager.prototype.setSettings = function(settings) {
+NirodhaManager.prototype.setSettings = function(settings) {
 	this.settings = settings;
 };
 
-nirodhaManager.prototype.createProject = function(directoryName, callback) {
+NirodhaManager.prototype.createProject = function(directoryName, callback) {
 	logger.log('Creating directory: ' + directoryName, 7);
 	fs.mkdirSync(directoryName);
 	fs.mkdirSync(directoryName + 'custom');
@@ -568,25 +569,25 @@ nirodhaManager.prototype.createProject = function(directoryName, callback) {
 	createView(this.settings, 'index', directoryName, callback);
 };
 
-nirodhaManager.prototype.createView = function(viewname, optdirectory, callback) {
+NirodhaManager.prototype.createView = function(viewname, optdirectory, callback) {
 	logger.log('In createView... ' + JSON.stringify(this.settings));
 	createView(this.settings, viewname, optdirectory, callback);
 };
 
-nirodhaManager.prototype.init = function(pView, pDirectory) {
+NirodhaManager.prototype.init = function(pView, pDirectory) {
 	directory = pDirectory;
 	view = pView;
 };
 
-nirodhaManager.prototype.findJsFiles = function(resultFileList) {
+NirodhaManager.prototype.findJsFiles = function(resultFileList) {
 	return findJsFiles(resultFileList);
 };
 
-nirodhaManager.prototype.findCSSFiles = function(resultFileList) {
+NirodhaManager.prototype.findCSSFiles = function(resultFileList) {
 	return findCSSFiles(resultFileList);
 };
 
-nirodhaManager.prototype.deploy = function(settings, view, callback) {
+NirodhaManager.prototype.deploy = function(settings, view, callback) {
 
 	var views = [];
 	if(!view) {
@@ -766,6 +767,6 @@ nirodhaManager.prototype.deploy = function(settings, view, callback) {
 };
 
 // Accepts a response object and parses a view into it
-nirodhaManager.prototype.parse = function(res) {
+NirodhaManager.prototype.parse = function(res) {
 	parse(res);
 };
