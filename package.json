@@ -19,10 +19,11 @@
     "should": "4.x.x",
     "istanbul": "0.2.x",
     "jshint": "2.x.x",
-    "mocha-lcov-reporter": "0.0.1"
+    "mocha-lcov-reporter": "0.0.1",
+    "codeclimate-test-reporter": "0.x.x"
   },
   "scripts": {
-    "test": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -u tdd -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
+    "test": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -u tdd -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && cat ./coverage/lcov.info | ./node_modules/codeclimate-test-reporter/bin/codeclimate.js && rm -rf ./coverage"
   },
   "engine": "node >= 0.10.x"
 }

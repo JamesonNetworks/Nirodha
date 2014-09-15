@@ -19,7 +19,6 @@ var scriptEnd = '"></script>\n';
 var styleStart = '<link rel="stylesheet" href="';
 var styleEnd = '">\n';
 
-var LIBRARY_NOT_FOUND = 'There is no view or library file which corresponds to the request';
 var mimeTypes = {
     "html": "text/html",
     "jpeg": "image/jpeg",
@@ -35,18 +34,13 @@ var mimeTypes = {
 var view;
 var directory;
 
-var searchDirectories = [];
-
 // Other crap
 // Method to get all files in directories
 var walkSync = utils.walkSync;
 
 // Filters
-var isHtmlFile = utils.isHtmlFile;
 var isJsFile = utils.isJsFile;
 var isCssFile = utils.isCssFile;
-
-var settings;
 
 exports = module.exports = new nirodhaManager();
 
@@ -119,7 +113,7 @@ function generateJsAndCSSForIncludeSection(libobject, view) {
 					logger.debug('Inserting the following js library: ' + jsfiles[i]);
 					lm.getLibraryContentsAsString(jsfiles[i], libraryCallback);
 
-					if(i == jsfiles.length-1) {
+					if(i === jsfiles.length-1) {
 						cb(null, null);
 					}
 				}
@@ -150,7 +144,7 @@ function generateJsAndCSSForIncludeSection(libobject, view) {
 					logger.log('Inserting the following css library: ' + cssfiles[i], 7);
 					lm.getLibraryContentsAsString(cssfiles[i], libraryCallback);
 
-					if(i == cssfiles.length-1) {
+					if(i === cssfiles.length-1) {
 						cb(null, cssincludes);
 					}
 				}
@@ -218,7 +212,7 @@ function insertLibrariesAt(text, libobject, callback) {
 				for(var i = 0; i < jsfiles.length; i++) {
 					logger.log('Inserting the following js library: ' + jsfiles[i], 7);
 					jsincludes += (scriptStart + jsfiles[i] + scriptEnd);
-					if(i == jsfiles.length-1) {
+					if(i === jsfiles.length-1) {
 						cb(null, jsincludes);
 					}
 				}
@@ -237,7 +231,7 @@ function insertLibrariesAt(text, libobject, callback) {
 				for(var i = 0; i < cssfiles.length; i++) {
 					logger.log('Inserting the following css library: ' + cssfiles[i], 7);
 					cssincludes += (styleStart + cssfiles[i] + styleEnd);
-					if(i == cssfiles.length-1) {
+					if(i === cssfiles.length-1) {
 						cb(null, cssincludes);
 					}
 				}
@@ -352,32 +346,22 @@ function createView(settings, viewname, optdirectory, callback) {
 	});
 }
 
-function findCSSFiles(resultFileList) {
-	var returnableJsFiles = "";
-	//logger.log('in findJsFiles: Result files list: ' + resultFileList[i], 7);
+function findFiles(resultFileList, filter) {
+	var returnableFiles = "";
 	for(var i = 0; i < resultFileList.length; i++) {
-		//logger.log('in findJsFiles: Result files list: ' + JSON.stringify(resultFileList[i].fileNames), 7);
-		//logger.log('in findJsFiles: Result files list: ' + JSON.stringify(resultFileList[i].fileNames.filter(isJsFile)), 7);
-		if(resultFileList[i].fileNames.filter(isCssFile).length > 0) {
-			//logger.log('Js files are : ' + resultFileList[i].fileNames.filter(isJsFile), 7);
-			returnableJsFiles += resultFileList[i].fileNames.filter(isCssFile).toString() + ',';
+		if(resultFileList[i].fileNames.filter(filter).length > 0) {
+			returnableFiles += resultFileList[i].fileNames.filter(filter).toString() + ',';
 		}
 	}
-	return returnableJsFiles;
+	return returnableFiles;	
+}
+
+function findCSSFiles(resultFileList) {
+	return findFiles(resultFileList, isCssFile);
 }
 
 function findJsFiles(resultFileList) {
-	var returnableJsFiles = "";
-	//logger.log('in findJsFiles: Result files list: ' + resultFileList[i], 7);
-	for(var i = 0; i < resultFileList.length; i++) {
-		//logger.log('in findJsFiles: Result files list: ' + JSON.stringify(resultFileList[i].fileNames), 7);
-		//logger.log('in findJsFiles: Result files list: ' + JSON.stringify(resultFileList[i].fileNames.filter(isJsFile)), 7);
-		if(resultFileList[i].fileNames.filter(isJsFile).length > 0) {
-			//logger.log('Js files are : ' + resultFileList[i].fileNames.filter(isJsFile), 7);
-			returnableJsFiles += resultFileList[i].fileNames.filter(isJsFile).toString() + ',';
-		}
-	}
-	return returnableJsFiles;
+	return findFiles(resultFileList, isJsFile);
 }
 
 function parse(res, directory, view, callback) {
@@ -479,7 +463,7 @@ function handleRequest (req, res, rootDirectory, htmlFiles, callback) {
 		}
 		else if(URI === '') {
 			if(typeof(htmlFiles)=== 'undefined') {
-				throw Error('htmlFiles not defined in nirodhaManager');
+				throw new Error('htmlFiles not defined in nirodhaManager');
 			}
 			logger.log('There was no request URI, serving links to each view...');
 			var pageText = '';
@@ -497,7 +481,7 @@ function handleRequest (req, res, rootDirectory, htmlFiles, callback) {
 		// Look for a static file in the static files directory
 		else {
 			var uri = url.parse(req.url).pathname;
-			var filename = path.join(rootDirectory + '/custom/static/', unescape(uri));
+			var filename = path.join(rootDirectory + '/custom/static/', decodeURI(uri));
 			var stats;
 
 			logger.log('Attempting to serve a static asset matching ' + uri);
@@ -511,7 +495,7 @@ function handleRequest (req, res, rootDirectory, htmlFiles, callback) {
 					stats = fs.lstatSync(filename);
 				}
 				else {
-					filename = path.join(rootDirectory + '/static/', unescape(uri));
+					filename = path.join(rootDirectory + '/static/', decodeURI(uri));
 					logger.log('No matching asset found in project custom directory for ' + uri + '...', 4);
 					logger.log('Attempting to serve a static asset matching from libs ' + uri);
 					logger.log('Using ' + filename + ' as filename...', 7);
@@ -636,7 +620,7 @@ nirodhaManager.prototype.deploy = function(settings, view, callback) {
 	async.series(utils.deriveLibraries(searchDirectories),
 	function(err, libraries) {
 		if(utils.hasDuplicateLibraries(libraries)) {
-			throw Error('Duplicate libraries found. This occurs when two js or css libraries have conflicting names. Resolve the conflict in your libraries before continuing.');
+			throw new Error('Duplicate libraries found. This occurs when two js or css libraries have conflicting names. Resolve the conflict in your libraries before continuing.');
 		}
 
 		if(!fs.existsSync('deploy')) {
@@ -666,7 +650,7 @@ nirodhaManager.prototype.deploy = function(settings, view, callback) {
 		logger.log('Found the following list of CSS files in Nirodha paths: ' + JSON.stringify(cssFiles), 7);
 
 		logger.debug('Library manager init...');
-		lm.init(libraries, jsFiles, cssFiles)
+		lm.init(libraries, jsFiles, cssFiles);
 
 		logger.debug(JSON.stringify(views));
 
