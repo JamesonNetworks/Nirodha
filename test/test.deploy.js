@@ -87,4 +87,36 @@ suite('DeploySuite', function() {
 			done();
 		});
 	});
+
+	test('Deploy index view with static content', function(done) {
+		async.series([
+			function(cb) {
+				fs.writeFileSync('custom/static/staticfile.html', 'Nothing here!');
+				cb();
+			},
+			function(cb) {
+				deploy(['index'], settings, function(testing_code) {
+					testing_code.should.equal(testing.nirodhaManager.viewdeployed);
+					cb();
+				});
+			}
+		], function() {
+			fs.unlinkSync('custom/static/staticfile.html');
+			done();
+		});
+	});
+
+	test('Deploy all Views', function(done) {
+		async.series([
+			function(cb) {
+				rmDir('deploy');
+				deploy([], settings, function(testing_code) {
+					testing_code.should.equal(testing.nirodhaManager.viewdeployed);
+					cb();
+				});
+			}
+		], function() {
+			done();
+		});
+	});
 });

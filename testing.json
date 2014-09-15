@@ -9,7 +9,8 @@
 		"projectcreated": "projectcreated",
 		"viewdeployed": "viewdeployed",
 		"notfound": "notfound",
-		"html": "html"
+		"html": "html",
+		"file": "file"
 	},
 	"libraryManager": {
 		"jscss": "jscss",
