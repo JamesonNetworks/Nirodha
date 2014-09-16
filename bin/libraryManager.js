@@ -1,19 +1,8 @@
 var fs = require('fs');
 var logger = require('jslogging');
-var async = require('async');
 var testing = require('../testing.json');
 
 var constants = require('./constants.js');
-
-var LIBRARY_NOT_FOUND = 'There is no view or library file which corresponds to the request';
-var mimeTypes = {
-    "html": "text/html",
-    "jpeg": "image/jpeg",
-    "jpg": "image/jpeg",
-    "png": "image/png",
-    "js": "text/javascript",
-    "css": "text/css"
-};
 
 var Libraries;
 var JSFiles;
@@ -43,12 +32,10 @@ LibraryManager.prototype.init = function(libraries, jsfiles, cssfiles) {
 };
 
 var getLibraryContents = function(uri, callback) {
-	var found = false;
-	var type;
 	logger.debug('Entering getLibraryContents...');
 	logger.debug(JSON.stringify(Libraries));
 	if(typeof(Libraries) === 'undefined') {
-		throw Error('No libraries defined, did you call LibraryManager.init first?');
+		throw new Error('No libraries defined, did you call LibraryManager.init first?');
 	}
 	for(var i = 0; i < Libraries.length; i++) {
 		for(var k = 0; k < Libraries[i].length; k++) {
@@ -58,6 +45,10 @@ var getLibraryContents = function(uri, callback) {
 				var pageText = fs.readFileSync(path).toString();
 				logger.debug('Writing file from path: ' + path);
 				callback(pageText, true);
+				return;
+			}
+			else if((i === (Libraries.length - 1)) && (k === (Libraries[i].length - 1))) {
+				callback(null, false);
 			}
 		}
 	}
