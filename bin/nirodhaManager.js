@@ -266,7 +266,7 @@ function createView(settings, viewname, optdirectory, callback) {
 			logger.debug('Copying the default view, this is settings: ' + JSON.stringify(settings));
 			copyFile(nirodhaPath + 'tmpl/defaultView.html', dir + viewname + '.html', function(err) {
 				if(err) {
-					logger.warn('Problem copying default view: ' + err, 0);
+					logger.warn('Problem copying default view: ' + err);
 					cb(err);
 				}
 				else {
@@ -280,7 +280,7 @@ function createView(settings, viewname, optdirectory, callback) {
 			logger.log('Copying the default view javascript, this is settings: ' + JSON.stringify(settings));
 			copyFile(nirodhaPath + 'tmpl/defaultView.js', dir + 'custom/js/' + viewname + '.js', function(err) {
 				if(err) {
-					logger.warn('Problem copying default js: ' + err, 0);
+					logger.warn('Problem copying default js: ' + err);
 					cb(err);
 				}
 				else {
@@ -293,7 +293,7 @@ function createView(settings, viewname, optdirectory, callback) {
 			// Copy in the default css
 			copyFile(nirodhaPath + 'tmpl/defaultView.css', dir + 'custom/css/' + viewname + '.css', function(err) {
 				if(err) {
-					logger.warn('Problem copying default css: ' + err, 0);
+					logger.warn('Problem copying default css: ' + err);
 					cb(err);
 				}
 				else {
@@ -306,7 +306,7 @@ function createView(settings, viewname, optdirectory, callback) {
 			// Copy in the default json accessories
 			copyFile(nirodhaPath + 'tmpl/defaultView.json', dir + viewname + '.json', function(err) {
 				if(err) {
-					logger.warn('Problem copying default css: ' + err, 0);
+					logger.warn('Problem copying default css: ' + err);
 					cb(err);
 				}
 				else {
@@ -319,7 +319,7 @@ function createView(settings, viewname, optdirectory, callback) {
 			// Copy in the default view templates
 			copyFile(nirodhaPath + 'tmpl/defaultView_templates.html', dir + 'custom/templates/' + viewname + '_templates.html', function(err) {
 				if(err) {
-					logger.warn('Problem copying default view: ' + err, 0);
+					logger.warn('Problem copying default view: ' + err);
 					cb(err);
 				}
 				else {
@@ -330,7 +330,7 @@ function createView(settings, viewname, optdirectory, callback) {
 		}
 	], function(err, results) {
 		if(err) {
-			logger.warn('An error occured copying the default view files: ' + err + ' ' + JSON.stringify(results), 3);
+			logger.warn('An error occured copying the default view files: ' + err + ' ' + JSON.stringify(results));
 			logger.debug('dir: ' + process.cwd());
 			logger.warn(JSON.stringify(err));
 			callback(err);
@@ -427,117 +427,99 @@ function parse(res, directory, view, callback) {
 }
 
 function handleRequest (req, res, rootDirectory, htmlFiles, callback) {
-	logger.info('req.url: ' + req.url);
-	if(req.url) {
-		// Parse the request url
-		var URI = req.url.substring(1, req.url.length);
-		logger.log('Requested URI is: ' + URI, 7);
-		logger.log('Index of html in uri: ' + (URI.indexOf('html') > 0), 7);
+	logger.debug('req.url: ' + req.url);
+	// Parse the request url
+	var URI = req.url.substring(1, req.url.length);
+	logger.log('Requested URI is: ' + URI, 7);
+	logger.log('Index of html in uri: ' + (URI.indexOf('html') > 0), 7);
 
-		if(URI.indexOf('html') > 0) {
-			// Look for the file in the html file list
-			logger.debug('HtmlFiles length: ' + htmlFiles.length);
-			URI = URI.split('?')[0];
-			for(var i = 0; i < htmlFiles.length; i++) {
-				logger.debug('Current file: ' + htmlFiles[i]);
-				logger.debug('Comparing ' + htmlFiles[i] + ' to ' + URI);
-				if(htmlFiles[i] === URI.split('?')[0]) {
-					logger.log('A matching view for ' + req.url + ' has been found, reading and serving the page...');
+	if(URI.indexOf('html') > 0) {
+		// Look for the file in the html file list
+		logger.debug('HtmlFiles length: ' + htmlFiles.length);
+		URI = URI.split('?')[0];
+		for(var i = 0; i < htmlFiles.length; i++) {
+			logger.debug('Current file: ' + htmlFiles[i]);
+			logger.debug('Comparing ' + htmlFiles[i] + ' to ' + URI);
+			if(htmlFiles[i] === URI.split('?')[0]) {
+				logger.log('A matching view for ' + req.url + ' has been found, reading and serving the page...');
 
-					logger.debug('Serving ' + rootDirectory + ' as root directory and ' + URI + ' as view');
+				logger.debug('Serving ' + rootDirectory + ' as root directory and ' + URI + ' as view');
 
-					// Set the headers to NEVER cache results
-					res.writeHead(200, {
-						'Content-Type': 'text/html',
-						'cache-control':'no-cache'
-					});
-					// Call into the ViewManager and parse the pages
-					parse(res, rootDirectory, URI, callback);
-				}
-
+				// Set the headers to NEVER cache results
+				res.writeHead(200, {
+					'Content-Type': 'text/html',
+					'cache-control':'no-cache'
+				});
+				// Call into the ViewManager and parse the pages
+				parse(res, rootDirectory, URI, callback);
 			}
-		}
-		// Look for a library matching the request
-		else if(URI.indexOf('.js') > 0 || URI.indexOf('.css') > 0) {
-			logger.debug('Handing ' + req.url + ' to the library manager...');
-			lm.serveLibrary(URI, res, callback);
-		}
-		else if(URI === '') {
-			if(typeof(htmlFiles)=== 'undefined') {
-				throw new Error('htmlFiles not defined in nirodhaManager');
-			}
-			logger.log('There was no request URI, serving links to each view...');
-			var pageText = '';
-			for(var k = 0; k < htmlFiles.length; k++) {
-				pageText += '<a href='+ htmlFiles[k] + '> ' + htmlFiles[k] + '</a> \n';
-			}
-			// Set the headers to NEVER cache results
-			res.writeHead(200, {
-				'Content-Type': 'text/html',
-				'cache-control':'no-cache'
-			});
-			res.write(pageText);
-			res.end();
-			if(typeof(callback) !== 'undefined') {
-				callback(null, testing.nirodhaManager.html);
-			}
-		}
-		// Look for a static file in the static files directory
-		else {
-			var uri = url.parse(req.url).pathname;
-			var filename = path.join(rootDirectory + '/custom/static/', decodeURI(uri));
-			var stats;
 
-			logger.log('Attempting to serve a static asset matching ' + uri);
-			logger.log('Using ' + filename + ' as filename...', 7);
-
-			if (fs.existsSync(filename)) {
-				stats = fs.lstatSync(filename);
-				if ((typeof(stats) !== 'undefined') && stats.isFile()) {
-					var mimeType = mimeTypes[path.extname(filename).split(".")[1]];
-					logger.log('mimeType: ' + mimeType, 7);
-
-					if(typeof(callback) !== 'undefined') {
-						callback(null, testing.nirodhaManager.file);
-					}
-					else {
-						res.writeHead(200, {'Content-Type': mimeType} );
-						var fileStream = fs.createReadStream(filename);
-						fileStream.pipe(res);
-					}
-				}
-				else {
-					// Symbolic link, other?
-					// TODO: follow symlinks?  security?
-					res.writeHead(500, {'Content-Type': 'text/plain'});
-					res.write('500 Internal server error\n');
-					res.end();
-				}
-			}
-			else {
-				filename = path.join(rootDirectory + '/static/', decodeURI(uri));
-				logger.log('No matching asset found in project custom directory for ' + uri + '...', 4);
-				logger.log('Attempting to serve a static asset matching from libs ' + uri);
-				logger.log('Using ' + filename + ' as filename...', 7);
-
-				if(!fs.existsSync(filename)) {
-					logger.log('No static asset was found for ' + filename + '...', 4);
-					res.writeHead(404, {'Content-Type': 'text/plain'});
-					res.write('404 Not Found\n');
-					res.end();
-					if(typeof(callback) !== 'undefined') {
-						callback(null, testing.nirodhaManager.notfound);
-					}
-					return;
-				}
-			}
 		}
 	}
-	else {
-		res.send(404);
+	// Look for a library matching the request
+	else if(URI.indexOf('.js') > 0 || URI.indexOf('.css') > 0) {
+		logger.debug('Handing ' + req.url + ' to the library manager...');
+		lm.serveLibrary(URI, res, callback);
+	}
+	else if(URI === '') {
+		if(typeof(htmlFiles)=== 'undefined') {
+			throw new Error('htmlFiles not defined in nirodhaManager');
+		}
+		logger.log('There was no request URI, serving links to each view...');
+		var pageText = '';
+		for(var k = 0; k < htmlFiles.length; k++) {
+			pageText += '<a href='+ htmlFiles[k] + '> ' + htmlFiles[k] + '</a> \n';
+		}
+		// Set the headers to NEVER cache results
+		res.writeHead(200, {
+			'Content-Type': 'text/html',
+			'cache-control':'no-cache'
+		});
+		res.write(pageText);
+		res.end();
 		if(typeof(callback) !== 'undefined') {
-			logger.log(JSON.stringify(req.url));
-			callback(null, testing.nirodhaManager.notfound);
+			callback(null, testing.nirodhaManager.html);
+		}
+	}
+	// Look for a static file in the static files directory
+	else {
+		var uri = url.parse(req.url).pathname;
+		var filename = path.join(rootDirectory + '/custom/static/', decodeURI(uri));
+		var stats;
+
+		logger.log('Attempting to serve a static asset matching ' + uri);
+		logger.log('Using ' + filename + ' as filename...', 7);
+
+		if (fs.existsSync(filename)) {
+			stats = fs.lstatSync(filename);
+			var mimeType = mimeTypes[path.extname(filename).split(".")[1]];
+			logger.log('mimeType: ' + mimeType, 7);
+
+			if(typeof(callback) !== 'undefined') {
+				callback(null, testing.nirodhaManager.file);
+			}
+			else {
+				res.writeHead(200, {'Content-Type': mimeType} );
+				var fileStream = fs.createReadStream(filename);
+				fileStream.pipe(res);
+			}
+		}
+		else {
+			filename = path.join(rootDirectory + '/static/', decodeURI(uri));
+			logger.log('No matching asset found in project custom directory for ' + uri + '...', 4);
+			logger.log('Attempting to serve a static asset matching from libs ' + uri);
+			logger.log('Using ' + filename + ' as filename...', 7);
+
+			if(!fs.existsSync(filename)) {
+				logger.log('No static asset was found for ' + filename + '...', 4);
+				res.writeHead(404, {'Content-Type': 'text/plain'});
+				res.write('404 Not Found\n');
+				res.end();
+				if(typeof(callback) !== 'undefined') {
+					callback(null, testing.nirodhaManager.notfound);
+				}
+				return;
+			}
 		}
 	}
 }
@@ -724,7 +706,7 @@ NirodhaManager.prototype.deploy = function(settings, view, callback) {
 							for(var i = 0; i < fileNames.length; i++) {
 								var writeDir;
 								if(err) {
-									logger.log(err, 3);
+									logger.log('Encountered error: ' + err, 3);
 								}
 								if(dir === 'custom/static') {
 									writeDir = 'deploy/';

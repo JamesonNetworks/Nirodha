@@ -102,8 +102,6 @@ suite('NirodhaManagerSuite', function() {
         nm.handleRequest(req, res, cb);
       }
     ], function(err, result) {
-       console.log(err);
-      console.log(result);
       result[0].should.equal(testing.nirodhaManager.html);
       done();
     });
@@ -161,6 +159,7 @@ suite('NirodhaManagerSuite', function() {
 
     async.series([
       function(cb) {
+        nm.init(["index.html"], os.tmpdir() + '/' + testing.create.testproject + '/');
         nm.setRootDirectory(os.tmpdir() + '/' + testing.create.testproject + '/');
         nm.setHtmlFiles(["index.html"]);
         nm.handleRequest(req, res, cb);
@@ -279,5 +278,56 @@ suite('NirodhaManagerSuite', function() {
       e.should.not.equal(null);
       done();
     }
+  });
+
+  test('nirodhaManager handleRequest invalid htmlFiles', function(done) {
+    var res = {};
+    res.writeHead = function(string) {
+      this.head = string;
+    };
+    res.write = function(string) {
+      this.write = string;
+    };
+    res.end = function() {
+
+    };
+    res.send = function(string) {
+      this.send = string;
+    };
+    nm.setHtmlFiles(undefined);
+    try {
+      nm.handleRequest(req, res, cb);
+    }
+    catch (e) {
+      e.should.not.equal(null);
+      done();
+    }
+  });
+
+  test('nirodhaManager handleRequest with static file', function(done) {
+    var res = {};
+    var req = {};
+    req.url = '/index.png';
+    res.writeHead = function(string) {
+      this.head = string;
+    };
+    res.write = function(string) {
+      this.write = string;
+    };
+    res.end = function() {
+
+    };
+    res.send = function(string) {
+      this.send = string;
+    };
+    nm.setRootDirectory(os.tmpdir() + '/' + testing.create.testproject + '/');
+    nm.setHtmlFiles(["index.html"]);
+    fs.writeFileSync(os.tmpdir() + '/' + testing.create.testproject + '/custom/static/index.png', 'Nothing here!');
+    var cb = function(err, result) {
+      result.should.equal(testing.nirodhaManager.file);
+      fs.unlinkSync(os.tmpdir() + '/' + testing.create.testproject + '/custom/static/index.png');
+      done();
+    }
+    nm.handleRequest(req, res, cb);
   });
 });
