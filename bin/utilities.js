@@ -20,32 +20,37 @@ function Util() {
 }
 
 function walkSync (start, callback) {
-  var stat = fs.statSync(start);
+  if(fs.existsSync(start)) {
+    var stat = fs.statSync(start);
 
-  if (stat.isDirectory()) {
-    var filenames = fs.readdirSync(start);
+    if (stat.isDirectory()) {
+      var filenames = fs.readdirSync(start);
 
-    var coll = filenames.reduce(function (acc, name) {
-      var abspath = path.join(start, name);
+      var coll = filenames.reduce(function (acc, name) {
+        var abspath = path.join(start, name);
 
-      if (fs.statSync(abspath).isDirectory()) {
-        acc.dirs.push(name);
-      } else {
-        acc.names.push(name);
-      }
+        if (fs.statSync(abspath).isDirectory()) {
+          acc.dirs.push(name);
+        } else {
+          acc.names.push(name);
+        }
 
-      return acc;
-    }, {"names": [], "dirs": []});
+        return acc;
+      }, {"names": [], "dirs": []});
 
-    callback(start, coll.dirs, coll.names);
+      callback(start, coll.dirs, coll.names);
 
-    coll.dirs.forEach(function (d) {
-      var abspath = path.join(start, d);
-      Util.prototype.walkSync(abspath, callback);
-    });
+      coll.dirs.forEach(function (d) {
+        var abspath = path.join(start, d);
+        Util.prototype.walkSync(abspath, callback);
+      });
 
-  } else {
-    throw new Error("path: " + start + " is not a directory");
+    } else {
+      throw new Error("path: " + start + " is not a directory");
+    }    
+  }
+  else {
+    callback('','');
   }
 }
 
@@ -73,13 +78,24 @@ Util.prototype.isHtmlFile = function(element) {
 
 Util.prototype.isJsFile = function(element) {
 	//logger.log(element + ', Is this a JS file? ' + (element.indexOf('.js') > 0));
-	return element.indexOf('.js') > 0;
+	return isJsFile(element);
 };
 
 Util.prototype.isCssFile = function(element) {
 	//logger.log(element + ', Is this a CSS file? ' + (element.indexOf('.css') > 0));
-	return element.indexOf('.css') > 0;
+	return isCssFile(element);
 };
+
+function isJsFile(element) {
+  //logger.log(element + ', Is this a JS file? ' + (element.indexOf('.js') > 0));
+  return element.indexOf('.js') > 0;
+};
+
+function isCssFile(element) {
+  //logger.log(element + ', Is this a CSS file? ' + (element.indexOf('.css') > 0));
+  return element.indexOf('.css') > 0;
+};
+
 
 Util.prototype.getSearchDirectories = function(nirodhaPath) {
   var directories = [];
@@ -119,11 +135,14 @@ Util.prototype.deriveLibraries = function(searchDirectories) {
 
 // Returns a boolean, looks for duplicate names of JS and CSS files
 Util.prototype.hasDuplicateLibraries = function(libraries) {
+  logger.debug('Libraries is: ' + JSON.stringify(libraries))
   var librariesByName = [];
   for(var i = 0; i < libraries.length; i++) {
     for(var k = 0; k < libraries[i].length; k++) {
       logger.debug('Libraries in loop: ' + JSON.stringify(libraries[i][k].fileNames));
-      librariesByName = librariesByName.concat(_.flatten(libraries[i][k].fileNames));
+      if(typeof(libraries[i][k].fileNames) !== 'undefined') {
+        librariesByName = librariesByName.concat(_.flatten(libraries[i][k].fileNames));        
+      }
     }
   }
   logger.debug('Libraries count:');
@@ -135,6 +154,91 @@ Util.prototype.hasDuplicateLibraries = function(libraries) {
   return librariesByName.length > 0 ? (_.uniq(librariesByName).length !== librariesByName.length) : false;
 };
 
+// Returns a list of duplicate libraries
+Util.prototype.getDuplicateLibraries = function(libraries) {
+  var librariesByName = [];
+  for(var i = 0; i < libraries.length; i++) {
+    for(var k = 0; k < libraries[i].length; k++) {
+      logger.debug('Libraries in loop: ' + JSON.stringify(libraries[i][k].fileNames));
+      librariesByName = librariesByName.concat(libraries[i][k].fileNames);
+    }
+  }
+
+  var duplicates = [];
+
+  while(librariesByName.length > 0) {
+    var library = librariesByName.pop();
+    logger.debug('Checking for duplicate library: ' + JSON.stringify(library));
+    if(_.contains(librariesByName, library)) {
+      logger.debug('Found duplicate, pushing ' + library);
+      duplicates.push(library);
+    }
+  }
+
+  return duplicates;
+};
+
 Util.prototype.getNirodhaPath = function () {
   return path.join(path.dirname(fs.realpathSync(__filename)), '../');
 };
+
+Util.prototype.getViewFromFileName = function (filename) {
+  // Determine if we are dealing with a templates file
+  if(filename.indexOf('_templates') > 0) {
+    return filename.substring(0, filename.indexOf('_templates'));
+  }
+  else if(filename.indexOf('.html') > 0 || filename.indexOf('.js') > 0 || filename.indexOf('.css') > 0) {
+    var tempName = filename.split('.')[0].split('/');
+    return tempName[tempName.length-1];
+  }
+  else {
+    return undefined;
+  }
+};
+
+Util.prototype.copyFile = function(source, target, cb) {
+  var cbCalled = false;
+
+  var rd = fs.createReadStream(source);
+  rd.on("error", function(err) {
+    done(err);
+  });
+  var wr = fs.createWriteStream(target);
+  wr.on("error", function(err) {
+    done(err);
+  });
+  wr.on("close", function() {
+    done();
+  });
+  rd.pipe(wr);
+
+  function done(err) {
+    if (!cbCalled) {
+      cb(err);
+      cbCalled = true;
+    }
+  }
+};
+
+function findFiles(resultFileList, filter) {
+  var returnableFiles = "";
+  for(var i = 0; i < resultFileList.length; i++) {
+    if(typeof(resultFileList[i].fileNames) === 'undefined') {
+
+    }
+    else {
+      if(resultFileList[i].fileNames.filter(filter).length > 0) {
+        returnableFiles += resultFileList[i].fileNames.filter(filter).toString() + ',';
+      }      
+    }
+  }
+  return returnableFiles; 
+}
+
+Util.prototype.findCSSFiles = function(resultFileList) {
+  return findFiles(resultFileList, isCssFile);
+}
+
+Util.prototype.findJsFiles = function(resultFileList) {
+  return findFiles(resultFileList, isJsFile);
+}

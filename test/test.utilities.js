@@ -25,6 +25,7 @@ var testproject = "TestProject";
 suite('UtilitySuite', function() {
 
   setup(function() {
+    logger.setLogLevel(-1);
     // Switch directory to a temp directory
     process.chdir(temppath);
   });
@@ -114,5 +115,38 @@ suite('UtilitySuite', function() {
          util.hasDuplicateLibraries(libraries).should.equal(true);
       }
     );
+  });
+
+  test('Testing getDuplicateLibraries: return the name of duplicated library', function() {
+    var searchDirectories = util.getSearchDirectories(util.getNirodhaPath());
+    searchDirectories[1] = [];
+    var resultingLibraries = 
+      [ 
+        [ 
+          { fileNames: [], dir: './custom' },
+          { fileNames: [ 'index.css', 'index.js', 'newview.css' ], dir: 'custom/css' },
+          { fileNames: [ 'index.js', 'newview.js' ], dir: 'custom/js' },
+          { fileNames: [], dir: 'custom/static' },
+          { fileNames: [ 'index_templates.html', 'newview_templates.html' ], dir: 'custom/templates' } 
+        ],
+        [] 
+      ];
+    process.chdir(temppath + '/TestProject/');
+    // Copy the file, and make a second index.js in a different directory to cause bad state
+    fs.createReadStream('./custom/js/index.js').pipe(fs.createWriteStream('./custom/css/index.js'));
+    async.series(util.deriveLibraries(searchDirectories),
+      function (err, libraries) {
+        util.getDuplicateLibraries(libraries)[0].should.equal('index.js');
+        fs.unlinkSync('./custom/css/index.js');
+      }
+    );
+  });
+
+  test('testing getViewFromFileName with index.html', function() {
+    util.getViewFromFileName('index.html').should.equal('index');
+  });
+
+  test('testing getViewFromFileName with custom/js/index.js', function() {
+    util.getViewFromFileName('custom/js/index.js').should.equal('index');
   });
 });

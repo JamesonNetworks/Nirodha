@@ -4,11 +4,13 @@ var logger = require('jslogging'),
 	compressor = require('node-minify'),
 	url = require('url'),
 	path = require('path'),
-	_ = require('underscore');
+	_ = require('underscore'),
+	eventEmitter = require('events').EventEmitter;
 
 var utils = require('./utilities.js');
 var lm = require('./libraryManager.js');
 var testing = require('../testing.json');
+var view = require('./view.js');
 
 // Constants
 var TEMPLATE_KEY = '{templates}';
@@ -53,316 +55,8 @@ exports.nirodhaManager = NirodhaManager;
 function NirodhaManager() {
 }
 
-// Helper function for creating files
-function copyFile(source, target, cb) {
-	var cbCalled = false;
-
-	var rd = fs.createReadStream(source);
-	rd.on("error", function(err) {
-		done(err);
-	});
-	var wr = fs.createWriteStream(target);
-	wr.on("error", function(err) {
-		done(err);
-	});
-	wr.on("close", function() {
-		done();
-	});
-	rd.pipe(wr);
-
-	function done(err) {
-		if (!cbCalled) {
-			cb(err);
-			cbCalled = true;
-		}
-	}
-}
-
-function generateJsAndCSSForIncludeSection(libobject, view) {
-	logger.debug('In generateJsAndCSSForIncludeSection...');
-
-	var jsPageText = '';
-	var cssPageText = '';
-
-	var title = libobject.title.substring(1, libobject.title.length-1);
-
-	logger.debug('Title: ' + title);
-
-	async.series([
-		// Insert js files
-		function(cb) {
-			logger.debug('Entering loop to add js libraries');
-
-			var jsfiles = libobject.libs.js;
-			logger.debug('JS Library lengths: ' + jsfiles.length);
-
-			if(jsfiles.length === 0) {
-				cb(null, null);
-			}
-			else {
-				var libraryCallback = function(result, found) {
-					logger.log('Found ' + jsfiles[i] + '? ' + found, 7);
-					//logger.log('File contents: ' + result, 7);
-					if(found) {
-						jsPageText += result + '\n';
-						//logger.log('jsPageText so far: ' + jsPageText, 7);
-					}
-				};
-				for(var i = 0; i < jsfiles.length; i++) {
-
-					logger.debug('Inserting the following js library: ' + jsfiles[i]);
-					lm.getLibraryContentsAsString(jsfiles[i], libraryCallback);
-
-					if(i === jsfiles.length-1) {
-						cb(null, null);
-					}
-				}
-			}
-		},
-		//Insert css files
-		function(cb) {
-			logger.log('Entering loop to add css libraries', 7);
-			// Insert references to the new css library files
-			var cssincludes = "";
-
-			var cssfiles = libobject.libs.css;
-			logger.log('CSS Library length: ' + cssfiles.length, 7);
-
-			if(cssfiles.length === 0) {
-				cb(null, null);
-			}
-			else {
-				var libraryCallback = function(result, found) {
-					logger.log('Found ' + cssfiles[i] + '? ' + found, 7);
-					//logger.log('File contents: ' + result, 7);
-					if(found) {
-						cssPageText += result + '\n';
-						//logger.log('jsPageText so far: ' + jsPageText, 7);
-					}
-				};
-				for(var i = 0; i < cssfiles.length; i++) {
-					logger.log('Inserting the following css library: ' + cssfiles[i], 7);
-					lm.getLibraryContentsAsString(cssfiles[i], libraryCallback);
-
-					if(i === cssfiles.length-1) {
-						cb(null, cssincludes);
-					}
-				}
-			}
-		}
-	], 
-	function(err, results) {
-		logger.debug('Results in generateCss: ' + JSON.stringify(results));
-		// Write the files out
-		fs.writeFileSync('./deploy/js/' + view + '-' + title + '.js.temp', jsPageText);
-		fs.writeFileSync('./deploy/css/' + view + '-' + title + '.css.temp', cssPageText);
-
-		// Minify the files
-		new compressor.minify({
-		type: 'gcc',
-		fileIn: './deploy/js/' + view + '-' + title + '.js.temp',
-		fileOut: './deploy/js/' + view + '-' + title + '.js',
-		callback: function(err){
-			if(err) {
-				logger.log('Calling error for minifying ' + './deploy/js/' + view + '-' + title + '.js.temp', 3);
-				logger.log(err, 3);
-			}
-			fs.unlinkSync('./deploy/js/' + view + '-' + title + '.js.temp');
-			new compressor.minify({
-			type: 'yui-css',
-			fileIn: './deploy/css/' + view + '-' + title + '.css.temp',
-			fileOut: './deploy/css/' + view + '-' + title + '.css',
-			callback: function(err){
-				if(err) {
-					logger.log('Calling error for minifying ' + './deploy/css/' + view + '-' + title + '.css.temp', 3);
-					logger.log(JSON.stringify(err), 3);
-				}
-				fs.unlinkSync('./deploy/css/' + view + '-' + title + '.css.temp');
-				logger.debug('Results returning from generateCSs: ' + JSON.stringify(results));
-				}
-			});
-			}
-		});
-	});
-}
-
-function insertLibrariesAt(text, libobject, callback) {
-
-	// logger.log('text dump: ' + JSON.stringify(text));
-	logger.debug('libobject dump: ' + JSON.stringify(libobject));
-	var start = text.indexOf(libobject.title);
-	var end = start + libobject.title.length;
-	var firstpart = text.substring(0, start);
-	var lastpart = text.substring(end, text.length);
-
-	var jsfiles = libobject.libs.js;
-	var cssfiles = libobject.libs.css;
-
-	async.series([
-		// Insert js files
-		function(cb) {
-			logger.log('Entering loop to add js libraries', 7);
-			logger.log('JS Library lengths: ' + jsfiles.length, 7);
-			// Insert references to the new js library files
-			var jsincludes = "";
-			if(jsfiles.length === 0) {
-				cb(null, jsincludes);
-			}
-			else {
-				for(var i = 0; i < jsfiles.length; i++) {
-					logger.log('Inserting the following js library: ' + jsfiles[i], 7);
-					jsincludes += (scriptStart + jsfiles[i] + scriptEnd);
-					if(i === jsfiles.length-1) {
-						cb(null, jsincludes);
-					}
-				}
-			}
-		},
-		//Insert css files
-		function(cb) {
-			logger.log('Entering loop to add css libraries', 7);
-			logger.log('CSS Library length: ' + cssfiles.length, 7);
-			// Insert references to the new css library files
-			var cssincludes = "";
-			if(cssfiles.length === 0) {
-				cb(null, cssincludes);
-			}
-			else {
-				for(var i = 0; i < cssfiles.length; i++) {
-					logger.log('Inserting the following css library: ' + cssfiles[i], 7);
-					cssincludes += (styleStart + cssfiles[i] + styleEnd);
-					if(i === cssfiles.length-1) {
-						cb(null, cssincludes);
-					}
-				}
-			}
-		}
-	], 
-	function(err, results) {
-		logger.debug('Inserting the following js results: ' + results[0]);
-		logger.debug('Inserting the following css results: ' + results[1]);
-		
-		callback(firstpart + results[0].toString() + results[1].toString() + lastpart);
-	});
-}
-
-function createView(settings, viewname, optdirectory, callback) {
-	var dir;
-	var nirodhaPath  = utils.getNirodhaPath();
-
-	async.series([
-		function(cb) {
-			if(optdirectory) {
-				dir = optdirectory;
-				cb(null, true);
-			}
-			else {
-				dir = './';
-				cb(null, true);
-			}
-		},
-		function(cb) {
-			// Copy in the default view
-			logger.debug('Copying the default view, this is settings: ' + JSON.stringify(settings));
-			copyFile(nirodhaPath + 'tmpl/defaultView.html', dir + viewname + '.html', function(err) {
-				if(err) {
-					logger.warn('Problem copying default view: ' + err);
-					cb(err);
-				}
-				else {
-					logger.log('Successfully created ' + viewname + '.html');
-					cb(null, true);
-				}
-			});
-		},
-		function(cb) {
-			// Copy in the default javascript
-			logger.log('Copying the default view javascript, this is settings: ' + JSON.stringify(settings));
-			copyFile(nirodhaPath + 'tmpl/defaultView.js', dir + 'custom/js/' + viewname + '.js', function(err) {
-				if(err) {
-					logger.warn('Problem copying default js: ' + err);
-					cb(err);
-				}
-				else {
-					logger.log('Successfully created ' + viewname + '.js');
-					cb(null, true);
-				}
-			});
-		},
-		function(cb) {
-			// Copy in the default css
-			copyFile(nirodhaPath + 'tmpl/defaultView.css', dir + 'custom/css/' + viewname + '.css', function(err) {
-				if(err) {
-					logger.warn('Problem copying default css: ' + err);
-					cb(err);
-				}
-				else {
-					logger.log('Successfully created ' + viewname + '.css');
-					cb(null, true);
-				}
-			});
-		},
-		function(cb) {
-			// Copy in the default json accessories
-			copyFile(nirodhaPath + 'tmpl/defaultView.json', dir + viewname + '.json', function(err) {
-				if(err) {
-					logger.warn('Problem copying default css: ' + err);
-					cb(err);
-				}
-				else {
-					logger.log('Successfully created ' + viewname + '.json');
-					cb(null, true);
-				}
-			});
-		},
-		function(cb) {
-			// Copy in the default view templates
-			copyFile(nirodhaPath + 'tmpl/defaultView_templates.html', dir + 'custom/templates/' + viewname + '_templates.html', function(err) {
-				if(err) {
-					logger.warn('Problem copying default view: ' + err);
-					cb(err);
-				}
-				else {
-					logger.log('Successfully created ' + viewname + '_templates.html');
-					cb(null, true);
-				}
-			});
-		}
-	], function(err, results) {
-		if(err) {
-			logger.warn('An error occured copying the default view files: ' + err + ' ' + JSON.stringify(results));
-			logger.debug('dir: ' + process.cwd());
-			logger.warn(JSON.stringify(err));
-			callback(err);
-		}
-		else if(typeof(callback) !== 'undefined') {
-			if(dir === './') {
-				callback(testing.nirodhaManager.viewcreated);
-			}
-			else {
-				callback(testing.nirodhaManager.projectcreated);
-			}
-		}
-	});
-}
-
-function findFiles(resultFileList, filter) {
-	var returnableFiles = "";
-	for(var i = 0; i < resultFileList.length; i++) {
-		if(resultFileList[i].fileNames.filter(filter).length > 0) {
-			returnableFiles += resultFileList[i].fileNames.filter(filter).toString() + ',';
-		}
-	}
-	return returnableFiles;	
-}
-
-function findCSSFiles(resultFileList) {
-	return findFiles(resultFileList, isCssFile);
-}
-
-function findJsFiles(resultFileList) {
-	return findFiles(resultFileList, isJsFile);
-}
+var findCSSFiles = utils.findCSSFiles;
+var findJsFiles = utils.findJsFiles;
 
 function parse(res, directory, view, callback) {
 	/*
@@ -542,25 +236,6 @@ NirodhaManager.prototype.setSettings = function(settings) {
 	this.settings = settings;
 };
 
-NirodhaManager.prototype.createProject = function(directoryName, callback) {
-	logger.log('Creating directory: ' + directoryName, 7);
-	fs.mkdirSync(directoryName);
-	fs.mkdirSync(directoryName + 'custom');
-	fs.mkdirSync(directoryName + 'custom/js');
-	fs.mkdirSync(directoryName + 'custom/css');
-	fs.mkdirSync(directoryName + 'custom/templates');
-	fs.mkdirSync(directoryName + 'deploy');
-	fs.mkdirSync(directoryName + 'deploy/js');
-	fs.mkdirSync(directoryName + 'deploy/css');
-	fs.mkdirSync(directoryName + 'custom/static');
-	createView(this.settings, 'index', directoryName, callback);
-};
-
-NirodhaManager.prototype.createView = function(viewname, optdirectory, callback) {
-	logger.log('In createView... ' + JSON.stringify(this.settings));
-	createView(this.settings, viewname, optdirectory, callback);
-};
-
 NirodhaManager.prototype.init = function(pView, pDirectory) {
 	directory = pDirectory;
 	view = pView;
@@ -574,12 +249,12 @@ NirodhaManager.prototype.findCSSFiles = function(resultFileList) {
 	return findCSSFiles(resultFileList);
 };
 
-NirodhaManager.prototype.deploy = function(settings, view, callback) {
+NirodhaManager.prototype.deploy = function(settings, viewname, callback) {
 
 	var views = [];
-	if(typeof(view) === 'undefined') {
+	if(typeof(viewname) === 'undefined') {
 
-		logger.debug('No view specified!');
+		logger.debug('No viewname specified!');
 		logger.info('Deploying all views...');
 
 		views = fs.readdirSync('./');
@@ -595,162 +270,44 @@ NirodhaManager.prototype.deploy = function(settings, view, callback) {
 		});
 	}
 	else {
-		views.push(view);		
+		views.push(viewname);		
 	}
 
-	var searchDirectories = utils.getSearchDirectories(utils.getNirodhaPath());
+	if(!fs.existsSync('deploy')) {
+		fs.mkdirSync('deploy');
+	}
+	if(!fs.existsSync('deploy/js')) {
+		fs.mkdirSync('deploy/js');
+	}
+	if(!fs.existsSync('deploy/css')) {
+		fs.mkdirSync('deploy/css');
+	}
 
 	/*
 	*	Parse the libraries included in the thtml
 	*/
 
-	// Start by searching the custom directories
-	async.series(utils.deriveLibraries(searchDirectories),
-	function(err, libraries) {
-		if(utils.hasDuplicateLibraries(libraries)) {
-			throw new Error('Duplicate libraries found. This occurs when two js or css libraries have conflicting names. Resolve the conflict in your libraries before continuing.');
+	logger.debug('nirodhaManager Current Views: ' + JSON.stringify(views));
+
+	numberOfViewsToDeploy = views.length;
+	var deployedEventListener = new eventEmitter();
+
+	deployedEventListener.on('viewDeployed', function(event) {
+		numberOfViewsToDeploy--;
+		if(numberOfViewsToDeploy === 0) {
+			if(typeof(callback) !== 'undefined' ) {
+				callback(testing.nirodhaManager.viewdeployed);
+			}
 		}
+	});
+	var searchDirectories = utils.getSearchDirectories(utils.getNirodhaPath());
 
-		if(!fs.existsSync('deploy')) {
-			fs.mkdirSync('deploy');
-		}
-		if(!fs.existsSync('deploy/js')) {
-			fs.mkdirSync('deploy/js');
-		}
-		if(!fs.existsSync('deploy/css')) {
-			fs.mkdirSync('deploy/css');
-		}
-		
-		var jsFiles = "";
-		var cssFiles = "";
-
-		jsFiles = findJsFiles(libraries[0]);
-		jsFiles += ',' + findJsFiles(libraries[1]);
-		logger.log('JS files is : ' + jsFiles, 7);
-		jsFiles = jsFiles.split(',');
-
-		cssFiles = findCSSFiles(libraries[0]);
-		cssFiles += ',' + findCSSFiles(libraries[1]);
-		logger.log('CSS files is : ' + cssFiles, 7);
-		cssFiles = cssFiles.split(',');
-
-		logger.log('Found the following list of JS files in Nirodha paths: ' + JSON.stringify(jsFiles), 7);
-		logger.log('Found the following list of CSS files in Nirodha paths: ' + JSON.stringify(cssFiles), 7);
-
-		logger.debug('Library manager init...');
-		lm.init(libraries, jsFiles, cssFiles);
-
-		logger.debug(JSON.stringify(views));
-
-		if(typeof(callback) !== 'undefined' ) {
-			callback(testing.nirodhaManager.viewdeployed);
-		}
-		// TODO: Fix this includes
-		_.each(views, function(view) {
-			// Get the page text for the view by removing the .html portion of the request and parsing the view
-			var pageText = fs.readFileSync(view + '.html').toString();
-			// var jsPageText = '';
-			// var cssPageText = '';
-			var includes = JSON.parse(fs.readFileSync(view + '.json').toString());
-
-			// var jsfiles = includes.js;
-			// var cssfiles = includes.css;
-
-			// logger.log('Included js: ' + JSON.stringify(jsfiles));
-
-			// // Locate the include section for javascript/css
-			// var startOfIncludes = pageText.indexOf(INCLUDES);
-			// logger.log('Includes length: ' + INCLUDES.length, 7);
-			// var endOfIncludes = startOfIncludes + INCLUDES.length;
-
-			// logger.log('JS/CSS include start: ' + startOfIncludes, 7);
-			// logger.log('JS/CSS include end: ' + endOfIncludes, 7);
-			// var firstPartOfPage = pageText.substring(0, startOfIncludes);
-			// var lastPartOfPage = pageText.substring(endOfIncludes, pageText.length);
-
-			async.series([
-					// Generate the css and js libraries and minify for each library section
-					function(cb) {
-						var includeSections = [];
-						for(var i = 0; i < includes.length; i++) {
-							logger.debug('index: ' + i);
-							generateJsAndCSSForIncludeSection(includes[i], view);
-							if(i === includes.length-1) {
-
-								cb(null, includeSections);
-							}
-						}
-					},
-					// Add in the templates
-					function(cb) {
-						logger.debug('view is : ' + view);
-						var template_filename = './custom/templates/' + view + '_templates.html';
-						logger.debug('Adding the templates html to the core html file...');
-						logger.debug('Loading the following file: ' + template_filename);
-						var template_text = fs.readFileSync(template_filename).toString();
-
-						var start = pageText.indexOf(TEMPLATE_KEY);
-						var end  = pageText.indexOf(TEMPLATE_KEY) + TEMPLATE_KEY.length;
-						var firstpart = pageText.substring(0, start);
-						var lastpart = pageText.substring(end, pageText.length);
-						// logger.log('template text: ' + template_text);
-						pageText = firstpart + template_text + lastpart; 
-						cb(null, null);
-					},
-					//Copy static files
-					function(cb) {
-						walkSync(searchDirectories[2], function(dir, directories, fileNames) {
-							logger.debug('Directory: ' + dir);
-							logger.debug('FileNames: ' + JSON.stringify(fileNames));
-
-							for(var i = 0; i < fileNames.length; i++) {
-								var writeDir;
-								if(err) {
-									logger.log('Encountered error: ' + err, 3);
-								}
-								if(dir === 'custom/static') {
-									writeDir = 'deploy/';
-								}
-								else {
-									logger.log('Directory to write to: ' + dir.substring(searchDirectories[2].length, dir.length), 7);
-									writeDir =  'deploy' + dir.substring(searchDirectories[2].length, dir.length) + '/';
-									var folderExists = fs.existsSync(writeDir);
-									if(!folderExists) {
-										fs.mkdirSync(writeDir);
-									}
-								}
-								logger.log(writeDir + fileNames[i], 7);
-								logger.log('FileName: ' + JSON.stringify(fileNames[i]), 7);
-								var data = fs.readFileSync(dir + '/' + fileNames[i]);
-								fs.writeFileSync(writeDir + fileNames[i], data);
-							}
-							//logger.log('Loading file ' + one + '/' + three, 7);
-						});
-						cb(null, null);
-					}
-				], 
-				// Write out the final html file
-				function(err, results) {
-					logger.debug(JSON.stringify(results));
-					logger.debug(pageText);
-					logger.log('Writing final html file...');
-					for(var i = 0; i < includes.length; i++) {
-						var libobject = includes[i];
-						var title = libobject.title.substring(1, libobject.title.length-1);
-						var firstPartOfPage = pageText.substring(0, pageText.indexOf(libobject.title));
-						var lastPartOfPage = pageText.substring(pageText.indexOf(libobject.title) + libobject.title.length, pageText.length);
-						var jsincludes = (scriptStart + '/js/' + view  + '-' + title + '.js' + scriptEnd);
-						var cssincludes = (styleStart + '/css/' + view + '-' + title + '.css' + styleEnd);
-						pageText = firstPartOfPage + jsincludes + cssincludes + lastPartOfPage;
-					}
-
-
-					fs.writeFileSync('./deploy/' + view + '.html', pageText);
-				});
-			});
-		});
-
-
+	// TODO: Fix this includes
+	_.each(views, function(viewToDeploy) {
+		var viewObject = view;
+		viewObject.init(viewToDeploy);
+		viewObject.deploy(deployedEventListener);
+	});
 };
 
 // Accepts a response object and parses a view into it

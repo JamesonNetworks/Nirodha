@@ -8,6 +8,7 @@
 		"viewcreated": "viewcreated",
 		"projectcreated": "projectcreated",
 		"viewdeployed": "viewdeployed",
+		"deploying": "deploying",
 		"notfound": "notfound",
 		"html": "html",
 		"file": "file"
@@ -17,8 +18,14 @@
 		"notfound": "notfound",
 		"error": "error"
 	},
+	"watchManager": {
+		"finishedDeploying": "finishedDeploying"
+	},
 	"deploy": {
 
+	},
+	"view": {
+		"viewcreated": "viewcreated"
 	},
 	"directoryList": [
 		{

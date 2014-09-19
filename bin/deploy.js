@@ -13,7 +13,6 @@ module.exports = function (args, settings, callback) {
 	if(args.length != 1) {
 		logger.debug('Received more than 1 argument');
 	}
-
 	// Create the folder with the structure
 	nm.deploy(settings, args[0], callback);
 };
