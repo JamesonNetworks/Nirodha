@@ -134,12 +134,12 @@ LibraryManager.prototype.getLibraryContentsAsString = function(uri, callback) {
 
 function getLibraryContentsSync(uri) {
 	var pageText = '';
-	logger.info('Entering getLibraryContentsSync...');
+	logger.debug('Entering getLibraryContentsSync...');
 	//logger.info(JSON.stringify(LibraryContainer));
 	if(typeof(LibraryContainer) === 'undefined') {
 		throw new Error('No libraries defined, did you call LibraryManager.init first?');
 	}
-	logger.info('URI is ' + uri);
+	logger.debug('URI is ' + uri);
 
 	if(typeof(LibraryContainer[uri]) !== 'undefined') {
 		logger.debug('Found libray for ' + uri);

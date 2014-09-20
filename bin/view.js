@@ -32,7 +32,7 @@ function View() {
 
 View.prototype.init = function(viewname) {
     this.name = viewname;
-    logger.info('Did all the right stuff exist?' + (fs.existsSync(viewname + '.json') && fs.existsSync(viewname + '.html')));
+    logger.debug('Did all the right stuff exist?' + (fs.existsSync(viewname + '.json') && fs.existsSync(viewname + '.html')));
     if(fs.existsSync(viewname + '.json') && fs.existsSync(viewname + '.html')) {
         this.includes = JSON.parse(fs.readFileSync(viewname + '.json', 'utf-8'));
         this.pageText = fs.readFileSync(viewname + '.html', 'utf-8');
@@ -130,21 +130,21 @@ View.prototype.create = function(callback) {
 
 function getLibraries(cwd, type, include, callback) {
     process.chdir(cwd);
-    logger.info('Entering loop to add ' + type + ' libraries');
+    logger.debug('Entering loop to add ' + type + ' libraries');
     var files = include.libs[type];
     var text = '';
     logger.debug('JS Library lengths: ' + files.length);
 
     if(files.length === 0) {
-        logger.info('Files length was zero');
+        logger.debug('Files length was zero');
         callback(null, null);
     }
     else {
         for(var i = 0; i < files.length; i++) {
 
-            logger.info('Inserting the following ' + type + ' library: ' + files[i]);
+            logger.debug('Inserting the following ' + type + ' library: ' + files[i]);
             text += text + lm.getLibraryContentsSync(files[i]) + '\n';
-            logger.info('Text is ' + text);
+            logger.debug('Text is ' + text);
             if(i === files.length-1) {
                 logger.debug('Got into the end...' + text);
                 callback(null, text);
@@ -189,19 +189,19 @@ View.prototype.generateSupportFilesForDeploy = function(type, callback) {
                 var include = includes[cnt];
                 // Make fs friendly title
                 var includeTitle = include.title.substring(1, include.title.length-1);
-                logger.info('Setting title to ' + includeTitle);
+                logger.debug('Setting title to ' + includeTitle);
                 viewHandle.getLibraries(process.cwd(), type, include, function(err, text) {
                     var finalText = '';
                     if(err) {
                         logger.warn(err);
                     }
-                    logger.info('Text is ' + text);
+                    logger.debug('Text is ' + text);
                     finalText += text;
                     // Minify the files
-                    logger.info('Current working directory is ' + process.cwd());
+                    logger.debug('Current working directory is ' + process.cwd());
                     fs.writeFileSync('./deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type + '.temp', finalText);
                     if(cnt === includes.length-1) {
-                        logger.info('Writing as finalText: ' + finalText);
+                        logger.debug('Writing as finalText: ' + finalText);
                         cb();
                     }
                 });
@@ -256,7 +256,7 @@ View.prototype.generateCSS = function(callback) {
 View.prototype.generateHTML = function(callback) {
     var includes = this.includes;
     var pageText = this.pageText;
-    logger.info('Writing final html file...');
+    logger.debug('Writing final html file...');
     for(var i = 0; i < includes.length; i++) {
         var libobject = includes[i];
         var title = libobject.title.substring(1, libobject.title.length-1);
@@ -342,7 +342,7 @@ View.prototype.generateIncludesAsHTMLInserts = function() {
         var title = this.includes[i].title
         currentInclude = this.includes[i]; 
         libobject.title = {};
-        logger.info('Current Includes: ' + JSON.stringify(this.includes));
+        logger.debug('Current Includes: ' + JSON.stringify(this.includes));
         libobject.css = generateIncludes(currentInclude, 'css');
         libobject.js = generateIncludes(currentInclude, 'js');
         results.push(libobject);
