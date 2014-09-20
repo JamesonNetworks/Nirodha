@@ -2,7 +2,6 @@ var fs = require('fs');
 var logger = require('jslogging');
 var async = require('async');
 var compressor = require('node-minify');
-var eventEmitter = require('events').EventEmitter;
 
 var utils = require('./utilities.js');
 var testing = require('../testing.json');
@@ -156,11 +155,11 @@ function getLibraries(cwd, type, include, callback) {
             }
         }
     }
-};
+}
 
 View.prototype.getLibraries = function(cwd, type, include, callback) {
     return getLibraries(cwd, type, include, callback);
-}
+};
 
 View.prototype.deploy = function(callback) {
     var viewHandle = this;
@@ -209,7 +208,7 @@ View.prototype.generateSupportFilesForDeploy = function(type, callback) {
                     logger.debug('Writing as finalText: ' + finalText);
                     cb();
                 }
-            }
+            };
 
             for(var cnt = 0; cnt < includes.length; cnt++) {
                 var include = includes[cnt];
@@ -229,7 +228,7 @@ View.prototype.generateSupportFilesForDeploy = function(type, callback) {
                 minifier = 'yui-css';
             }
 
-            minifierCallback = function(err) {
+            var minifierCallback = function(err) {
                 if(err) {
                     logger.warn('Error occured while minifying: ' + err);
                 }
@@ -238,9 +237,8 @@ View.prototype.generateSupportFilesForDeploy = function(type, callback) {
                 }
                 catch (e) {
                     logger.warn('Problem deleting temp file:' + e);
-                }
-                
-            }
+                }  
+            };
 
             for(var i = 0; i < includes.length; i++) {
                 var include = includes[i];
@@ -371,7 +369,6 @@ View.prototype.generateIncludesAsHTMLInserts = function() {
 
     for(var i = 0; i < this.includes.length; i++) {
         var libobject = {};
-        var title = this.includes[i].title
         var currentInclude = this.includes[i]; 
         libobject.title = {};
         logger.debug('Current Includes: ' + JSON.stringify(this.includes));
