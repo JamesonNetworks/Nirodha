@@ -31,7 +31,7 @@ exports = module.exports = new View();
 exports.View = View;
 
 function View() {
-};
+}
 
 View.prototype.init = function(viewname) {
     this.name = viewname;
@@ -132,7 +132,7 @@ View.prototype.create = function(callback) {
  */
 
 function getLibraries(cwd, type, include, callback) {
-    debugger;
+    
     process.chdir(cwd);
     logger.debug('Entering loop to add ' + type + ' libraries');
     var files = include.libs[type];
@@ -144,7 +144,7 @@ function getLibraries(cwd, type, include, callback) {
         callback(null, null);
     }
     else {
-        debugger;
+        
         for(var i = 0; i < files.length; i++) {
 
             logger.debug('Inserting the following ' + type + ' library: ' + files[i]);
@@ -166,19 +166,19 @@ View.prototype.deploy = function(callback) {
     var viewHandle = this;
     async.series({
         GenerateJS: function(cb) {
-            debugger;
+            
             viewHandle.generateJavascript(cb);
         },
         GenerateCSS: function(cb) {
-            debugger;
+            
             viewHandle.generateCSS(cb);
         },
         GenerateHTML: function(cb) {
-            debugger;
+            
             viewHandle.generateHTML(cb);
         },
         CopyStaticFiles: function(cb) {
-            debugger;
+            
             viewHandle.copyStaticFiles(cb);
         }
     }, function(err, result) {
@@ -190,37 +190,37 @@ View.prototype.deploy = function(callback) {
 };
 
 View.prototype.generateSupportFilesForDeploy = function(type, callback) {
-    debugger;
+    
     var viewHandle = this;
     var includes = this.includes;
     async.series({
         BuildText: function(cb) {
-            debugger;
+            var getLibraryCallback = function(err, text) {
+                var finalText = '';
+                if(err) {
+                    logger.warn(err);
+                }
+                logger.debug('Text is ' + text);
+                finalText += text;
+                // Minify the files
+                logger.debug('Current working directory is ' + process.cwd());
+                fs.writeFileSync('./deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type + '.temp', finalText);
+                if(cnt === includes.length-1) {
+                    logger.debug('Writing as finalText: ' + finalText);
+                    cb();
+                }
+            }
+
             for(var cnt = 0; cnt < includes.length; cnt++) {
                 var include = includes[cnt];
                 // Make fs friendly title
                 var includeTitle = include.title.substring(1, include.title.length-1);
                 logger.debug('Setting title to ' + includeTitle);
-                viewHandle.getLibraries(process.cwd(), type, include, function(err, text) {
-                    debugger;
-                    var finalText = '';
-                    if(err) {
-                        logger.warn(err);
-                    }
-                    logger.debug('Text is ' + text);
-                    finalText += text;
-                    // Minify the files
-                    logger.debug('Current working directory is ' + process.cwd());
-                    fs.writeFileSync('./deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type + '.temp', finalText);
-                    if(cnt === includes.length-1) {
-                        logger.debug('Writing as finalText: ' + finalText);
-                        cb();
-                    }
-                });
+                viewHandle.getLibraries(process.cwd(), type, include, getLibraryCallback);
             }
         },
         MinifyFile: function(cb) {
-            debugger;
+            
             var minifier;
             if(type === 'js') {
                 minifier = 'gcc';
@@ -231,6 +231,20 @@ View.prototype.generateSupportFilesForDeploy = function(type, callback) {
 
             var minifyEvents = new eventEmitter();
             var numberOfIncludes = includes.length;
+
+            minifierCallback = function(err) {
+                if(err) {
+                    logger.warn('Error occured while minifying: ' + err);
+                }
+                try {
+                    fs.unlinkSync('./deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type + '.temp');
+                }
+                catch (e) {
+                    logger.warn('Problem deleting temp file:' + e);
+                }
+                
+            }
+
             for(var i = 0; i < includes.length; i++) {
                 var include = includes[i];
                 var includeTitle = include.title.substring(1, include.title.length-1);
@@ -238,18 +252,7 @@ View.prototype.generateSupportFilesForDeploy = function(type, callback) {
                     type: minifier,
                     fileIn: './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type + '.temp',
                     fileOut: './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type,
-                    callback: function(err) {
-                        if(err) {
-                            logger.warn('Error occured while minifying: ' + err);
-                        }
-                        try {
-                            fs.unlinkSync('./deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type + '.temp');
-                        }
-                        catch (e) {
-                            logger.warn('Problem deleting temp file:' + e);
-                        }
-                        
-                    }
+                    callback: minifierCallback
                 });
             }
             cb();
@@ -267,7 +270,7 @@ View.prototype.generateSupportFilesForDeploy = function(type, callback) {
 }
 
 View.prototype.generateJavascript = function(callback) {
-    debugger;
+    
     this.generateSupportFilesForDeploy('js', callback);
 };
 
