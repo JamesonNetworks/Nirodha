@@ -70,8 +70,8 @@ suite('CreateSuite', function() {
 				cb();
 			},
 			function(cb) {
-				create(args, settings, function(testing_code) {
-					testing_code.should.equal(testing.nirodhaManager.projectcreated);
+				create(args, settings, function(err, testing_code) {
+					testing_code.should.equal(testing.view.viewcreated);
 					cb();
 				});
 			},
@@ -90,8 +90,8 @@ suite('CreateSuite', function() {
 	test('Create a project which already exists', function(done) {
 		var args = [testproject];
 		var projectpath = temppath + args[0];
-		create(args, settings, function(testing_code) {
-			testing_code.should.equal(testing.create.projectexists);
+		create(args, settings, function(err, testing_code) {
+			err.should.not.equal(null);
 			done();
 		});
 	});
@@ -101,14 +101,14 @@ suite('CreateSuite', function() {
 		var projectpath = temppath + args[0];
 		async.series([
 			function(cb) {
-				create(args, settings, function(testing_code) {
+				create(args, settings, function(err, testing_code) {
 					process.chdir(projectpath);
 					cb();
 				});
 			},
 			function(cb) {
 				var view_args = ["view", "newview"];
-				create(view_args, settings, function(testing_code) {
+				create(view_args, settings, function(err, testing_code) {
 					testing_code.should.equal(testing.nirodhaManager.viewcreated);
 					cb();
 				});
