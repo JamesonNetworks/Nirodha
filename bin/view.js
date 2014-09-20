@@ -156,7 +156,7 @@ function getLibraries(cwd, type, include, callback) {
             }
         }
     }
-}
+};
 
 View.prototype.getLibraries = function(cwd, type, include, callback) {
     return getLibraries(cwd, type, include, callback);
@@ -229,9 +229,6 @@ View.prototype.generateSupportFilesForDeploy = function(type, callback) {
                 minifier = 'yui-css';
             }
 
-            var minifyEvents = new eventEmitter();
-            var numberOfIncludes = includes.length;
-
             minifierCallback = function(err) {
                 if(err) {
                     logger.warn('Error occured while minifying: ' + err);
@@ -261,13 +258,9 @@ View.prototype.generateSupportFilesForDeploy = function(type, callback) {
         if(err) {
             logger.warn(err);
         }
-        for(var i = 0; i < includes.length; i++) {
-            var include = includes[i];
-            var includeTitle = include.title.substring(1, include.title.length-1);
-        }
         callback(err, result);
     });
-}
+};
 
 View.prototype.generateJavascript = function(callback) {
     
@@ -311,7 +304,7 @@ View.prototype.generateHTML = function(callback) {
 };
 
 View.prototype.copyStaticFiles = function(callback) {
-    staticDirectory = 'custom/static';
+    var staticDirectory = 'custom/static';
     utils.walkSync(staticDirectory, function(dir, directories, fileNames) {
         logger.debug('Directory: ' + dir);
         logger.debug('FileNames: ' + JSON.stringify(fileNames));
@@ -337,7 +330,7 @@ View.prototype.copyStaticFiles = function(callback) {
         //logger.log('Loading file ' + one + '/' + three, 7);
         callback();
     });
-}
+};
 
 /**
  *  These are all for serving the view
@@ -351,7 +344,7 @@ function generateIncludes(libobject, type) {
     // Insert references to the new js library files
     var includes = "";
     if(files.length === 0) {
-        callback();
+        return;
     }
     else {
         for(var i = 0; i < files.length; i++) {
@@ -363,14 +356,14 @@ function generateIncludes(libobject, type) {
             }
         }
     }
-};
+}
 
 View.prototype.getIncludes = function() {
     return JSON.parse(JSON.stringify(this.includes));
 };
 
 View.prototype.generateIncludesAsHTMLInserts = function() {
-    results = [];
+    var results = [];
 
     if(typeof(this.includes) === 'undefined') {
         throw new Error('Did you run lm init?');
@@ -379,7 +372,7 @@ View.prototype.generateIncludesAsHTMLInserts = function() {
     for(var i = 0; i < this.includes.length; i++) {
         var libobject = {};
         var title = this.includes[i].title
-        currentInclude = this.includes[i]; 
+        var currentInclude = this.includes[i]; 
         libobject.title = {};
         logger.debug('Current Includes: ' + JSON.stringify(this.includes));
         libobject.css = generateIncludes(currentInclude, 'css');
@@ -412,10 +405,10 @@ View.prototype.generateHTMLForServing = function() {
     for(var i = 0; i < includes.length; i++) {
         var libobject = includes[i];
 
-        var start = pageText.indexOf(libobject.title);
-        var end = start + libobject.title.length;
-        var firstpart = pageText.substring(0, start);
-        var lastpart = pageText.substring(end, pageText.length);
+        start = pageText.indexOf(libobject.title);
+        end = start + libobject.title.length;
+        firstpart = pageText.substring(0, start);
+        lastpart = pageText.substring(end, pageText.length);
 
         pageText = firstpart + libobject.js + libobject.css + lastpart;
     }
