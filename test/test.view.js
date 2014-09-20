@@ -22,7 +22,7 @@ var currentworkingdirectory;
 var temppath = os.tmpdir() + '/';
 var testproject = "TestProject";
 
-var SERVED_HTML = '<script type=\"text/javascript\" src=\"index.js\"></script>\n<link rel=\"stylesheet\" href=\"index.css\">\n<script type=\"text/javascript\" src=\"index.js\"></script>\n<link rel=\"stylesheet\" href=\"index.css\">\n<!DOCTYPE html>\n<html>\n<head>\n\n{pre-load}\n</head>\n<body>\n\n<h1>My First Heading</h1>\n\n<p>My first paragraph.</p>\n\n</body>\n{templates}\n{post-load}\n\n</html>';
+var SERVED_HTML = '<script type=\"text/javascript\" src=\"index.js\"></script>\n<link rel=\"stylesheet\" href=\"index.css\">\n<script type=\"text/javascript\" src=\"index.js\"></script>\n<link rel=\"stylesheet\" href=\"index.css\">\n<!DOCTYPE html>\n<html>\n<head>\n\n{pre-load}\n</head>\n<body>\n\n<h1>My First Heading</h1>\n\n<p>My first paragraph.</p>\n\n</body>\n\n{post-load}\n\n</html>';
 
 suite('View', function() {
 

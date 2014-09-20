@@ -19,6 +19,9 @@ var script = {
     }
 };
 
+// Constants
+var TEMPLATE_KEY = '{templates}';
+
 exports = module.exports = new View();
 
 /**
@@ -129,6 +132,7 @@ View.prototype.create = function(callback) {
  */
 
 function getLibraries(cwd, type, include, callback) {
+    debugger;
     process.chdir(cwd);
     logger.debug('Entering loop to add ' + type + ' libraries');
     var files = include.libs[type];
@@ -140,10 +144,11 @@ function getLibraries(cwd, type, include, callback) {
         callback(null, null);
     }
     else {
+        debugger;
         for(var i = 0; i < files.length; i++) {
 
             logger.debug('Inserting the following ' + type + ' library: ' + files[i]);
-            text += text + lm.getLibraryContentsSync(files[i]) + '\n';
+            text = text + lm.getLibraryContentsSync(files[i]) + '\n';
             logger.debug('Text is ' + text);
             if(i === files.length-1) {
                 logger.debug('Got into the end...' + text);
@@ -161,15 +166,19 @@ View.prototype.deploy = function(callback) {
     var viewHandle = this;
     async.series({
         GenerateJS: function(cb) {
+            debugger;
             viewHandle.generateJavascript(cb);
         },
         GenerateCSS: function(cb) {
+            debugger;
             viewHandle.generateCSS(cb);
         },
         GenerateHTML: function(cb) {
+            debugger;
             viewHandle.generateHTML(cb);
         },
         CopyStaticFiles: function(cb) {
+            debugger;
             viewHandle.copyStaticFiles(cb);
         }
     }, function(err, result) {
@@ -181,16 +190,19 @@ View.prototype.deploy = function(callback) {
 };
 
 View.prototype.generateSupportFilesForDeploy = function(type, callback) {
+    debugger;
     var viewHandle = this;
     var includes = this.includes;
     async.series({
         BuildText: function(cb) {
+            debugger;
             for(var cnt = 0; cnt < includes.length; cnt++) {
                 var include = includes[cnt];
                 // Make fs friendly title
                 var includeTitle = include.title.substring(1, include.title.length-1);
                 logger.debug('Setting title to ' + includeTitle);
                 viewHandle.getLibraries(process.cwd(), type, include, function(err, text) {
+                    debugger;
                     var finalText = '';
                     if(err) {
                         logger.warn(err);
@@ -208,24 +220,33 @@ View.prototype.generateSupportFilesForDeploy = function(type, callback) {
             }
         },
         MinifyFile: function(cb) {
+            debugger;
+            var minifier;
+            if(type === 'js') {
+                minifier = 'gcc';
+            }
+            else if(type === 'css') {
+                minifier = 'yui-css';
+            }
+
             var minifyEvents = new eventEmitter();
             var numberOfIncludes = includes.length;
             for(var i = 0; i < includes.length; i++) {
                 var include = includes[i];
                 var includeTitle = include.title.substring(1, include.title.length-1);
                 new compressor.minify({
-                    type: 'gcc',
+                    type: minifier,
                     fileIn: './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type + '.temp',
                     fileOut: './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type,
                     callback: function(err) {
                         if(err) {
-                            logger.warn(err);
+                            logger.warn('Error occured while minifying: ' + err);
                         }
                         try {
                             fs.unlinkSync('./deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type + '.temp');
                         }
                         catch (e) {
-                            logger.warn(e);
+                            logger.warn('Problem deleting temp file:' + e);
                         }
                         
                     }
@@ -246,6 +267,7 @@ View.prototype.generateSupportFilesForDeploy = function(type, callback) {
 }
 
 View.prototype.generateJavascript = function(callback) {
+    debugger;
     this.generateSupportFilesForDeploy('js', callback);
 };
 
@@ -256,7 +278,21 @@ View.prototype.generateCSS = function(callback) {
 View.prototype.generateHTML = function(callback) {
     var includes = this.includes;
     var pageText = this.pageText;
+
+    logger.debug('view is : ' + this.name);
+    var template_filename = './custom/templates/' + this.name + '_templates.html';
+    logger.debug('Adding the templates html to the core html file...');
+    logger.debug('Loading the following file: ' + template_filename);
+    var template_text = fs.readFileSync(template_filename).toString();
+
+    var start = pageText.indexOf(TEMPLATE_KEY);
+    var end  = pageText.indexOf(TEMPLATE_KEY) + TEMPLATE_KEY.length;
+    var firstpart = pageText.substring(0, start);
+    var lastpart = pageText.substring(end, pageText.length);
+    // logger.log('template text: ' + template_text);
+    pageText = firstpart + template_text + lastpart; 
     logger.debug('Writing final html file...');
+
     for(var i = 0; i < includes.length; i++) {
         var libobject = includes[i];
         var title = libobject.title.substring(1, libobject.title.length-1);
@@ -354,6 +390,22 @@ View.prototype.generateIncludesAsHTMLInserts = function() {
 View.prototype.generateHTMLForServing = function() {
     var includes = this.generateIncludesAsHTMLInserts();
     var pageText = this.pageText;
+
+    logger.debug('view is : ' + this.name);
+    var template_filename = './custom/templates/' + this.name + '_templates.html';
+    logger.debug('Adding the templates html to the core html file...');
+    logger.debug('Loading the following file: ' + template_filename);
+    var template_text = fs.readFileSync(template_filename).toString();
+
+    var start = pageText.indexOf(TEMPLATE_KEY);
+    var end  = pageText.indexOf(TEMPLATE_KEY) + TEMPLATE_KEY.length;
+    var firstpart = pageText.substring(0, start);
+    var lastpart = pageText.substring(end, pageText.length);
+    // logger.log('template text: ' + template_text);
+    pageText = firstpart + template_text + lastpart; 
+    logger.debug('Pagetext is ' + pageText);
+    logger.debug('Writing final html file...');
+
     for(var i = 0; i < includes.length; i++) {
         var libobject = includes[i];
 

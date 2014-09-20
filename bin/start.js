@@ -42,9 +42,10 @@ module.exports = function (args, settings) {
 	// Start by searching the custom directories
 	async.series(utils.deriveLibraries(searchDirectories),
 		function (err, libraries) {
+			debugger;
 			logger.debug(JSON.stringify(libraries));
 			if(utils.hasDuplicateLibraries(libraries)) {
-				throw Error('Duplicate libraries found. This occurs when two js or css libraries have conflicting names. Resolve the conflict in your libraries before continuing.');
+				logger.warn('Duplicate libraries found. This occurs when two js or css libraries have conflicting names. Resolve the conflict in your libraries before continuing.');
 			}
 			logger.debug('HTML Files loaded: ' + JSON.stringify(htmlFiles));
 			//logger.log('Files in ' + searchDirectories[0] + ': ' + JSON.stringify(libraries[0]), 7);

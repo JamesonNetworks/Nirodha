@@ -310,7 +310,7 @@ NirodhaManager.prototype.findCSSFiles = function(resultFileList) {
 };
 
 NirodhaManager.prototype.deploy = function(settings, viewname, callback) {
-
+	debugger;
 	var views = [];
 	if(typeof(viewname) === 'undefined') {
 
@@ -357,7 +357,7 @@ NirodhaManager.prototype.deploy = function(settings, viewname, callback) {
 			callback(testing.nirodhaManager.viewdeployed);
 		}
 	});
-
+	debugger;
 	var searchDirectories = utils.getSearchDirectories(utils.getNirodhaPath());
 	var deployCallback = function() {
 		deployedEventListener.emit('done');

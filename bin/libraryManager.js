@@ -59,7 +59,7 @@ LibraryManager.prototype.init = function() {
 								libraryContainer[libraries[i][k].fileNames[l]].dir = libraries[i][k].dir;								
 							}
 							else {
-								logger.warn('Duplicate libraries were found, this could cause bad things to happen');
+								logger.debug('Duplicate libraries were found, this could cause bad things to happen');
 								//throw new Error('Duplicate libraries exist');
 							}
 						}
@@ -74,7 +74,7 @@ LibraryManager.prototype.init = function() {
 			}
 			//logger.info(JSON.stringify(libraries));
 			if(utils.hasDuplicateLibraries(libraries)) {
-				logger.warn('Mulitple libraries with the same name, ' + JSON.stringify(utils.getDuplicateLibraries(libraries)) + ', have been detected');
+				logger.debug('Mulitple libraries with the same name, ' + JSON.stringify(utils.getDuplicateLibraries(libraries)) + ', have been detected');
 				//throw new Error('Duplicate libraries found. This occurs when two js or css libraries have conflicting names. Resolve the conflict in your libraries before continuing.');
 			}
 			
