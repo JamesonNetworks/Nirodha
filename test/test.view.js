@@ -54,9 +54,5 @@ suite('View', function() {
             result.should.equal('// Your custom javascript for this view goes in this file\n\n');
             done();
         });
-    });    
-
-    test('Testing view.generateJavascriptFromInclude', function(done) {
-        var includes = view.getIncludes();
     });
 });

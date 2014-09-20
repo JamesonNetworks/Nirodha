@@ -157,8 +157,7 @@ View.prototype.getLibraries = function(cwd, type, include, callback) {
     return getLibraries(cwd, type, include, callback);
 }
 
-View.prototype.deploy = function(eventListener) {
-    //debugger;
+View.prototype.deploy = function(callback) {
     var viewHandle = this;
     async.series({
         GenerateJS: function(cb) {
@@ -170,11 +169,14 @@ View.prototype.deploy = function(eventListener) {
         GenerateHTML: function(cb) {
             viewHandle.generateHTML(cb);
         },
+        CopyStaticFiles: function(cb) {
+            viewHandle.copyStaticFiles(cb);
+        }
     }, function(err, result) {
         if(err) {
             logger.warn('Error generating supporting files: ' + err);
         }
-        eventListener.emit('done');
+        callback(err, result);
     });
 };
 
@@ -183,7 +185,6 @@ View.prototype.generateSupportFilesForDeploy = function(type, callback) {
     var includes = this.includes;
     async.series({
         BuildText: function(cb) {
-            debugger;
             for(var cnt = 0; cnt < includes.length; cnt++) {
                 var include = includes[cnt];
                 // Make fs friendly title
@@ -200,7 +201,6 @@ View.prototype.generateSupportFilesForDeploy = function(type, callback) {
                     logger.info('Current working directory is ' + process.cwd());
                     fs.writeFileSync('./deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type + '.temp', finalText);
                     if(cnt === includes.length-1) {
-                        debugger;
                         logger.info('Writing as finalText: ' + finalText);
                         cb();
                     }
@@ -208,23 +208,8 @@ View.prototype.generateSupportFilesForDeploy = function(type, callback) {
             }
         },
         MinifyFile: function(cb) {
-            debugger;
-            var callback = function(err) {
-                if(err) {
-                    logger.warn(err);
-                }
-                if(i === includes.length-1) {
-                    cb();
-                }
-            }
             var minifyEvents = new eventEmitter();
             var numberOfIncludes = includes.length;
-            minifyEvents.on('done', function() {
-                numberOfIncludes--;
-                if(numberOfIncludes === 0) {
-                    cb();
-                }
-            });
             for(var i = 0; i < includes.length; i++) {
                 var include = includes[i];
                 var includeTitle = include.title.substring(1, include.title.length-1);
@@ -236,17 +221,25 @@ View.prototype.generateSupportFilesForDeploy = function(type, callback) {
                         if(err) {
                             logger.warn(err);
                         }
-                        minifyEvents.emit('done');
+                        try {
+                            fs.unlinkSync('./deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type + '.temp');
+                        }
+                        catch (e) {
+                            logger.warn(e);
+                        }
+                        
                     }
                 });
             }
+            cb();
         }
     }, function(err, result) {            
-        debugger;
+        if(err) {
+            logger.warn(err);
+        }
         for(var i = 0; i < includes.length; i++) {
             var include = includes[i];
             var includeTitle = include.title.substring(1, include.title.length-1);
-            fs.unlinkSync('./deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type + '.temp');
         }
         callback(err, result);
     });
@@ -277,6 +270,35 @@ View.prototype.generateHTML = function(callback) {
     fs.writeFileSync('./deploy/' + this.name + '.html', pageText);
     callback();
 };
+
+View.prototype.copyStaticFiles = function(callback) {
+    staticDirectory = 'custom/static';
+    utils.walkSync(staticDirectory, function(dir, directories, fileNames) {
+        logger.debug('Directory: ' + dir);
+        logger.debug('FileNames: ' + JSON.stringify(fileNames));
+
+        for(var i = 0; i < fileNames.length; i++) {
+            var writeDir;
+            if(dir === staticDirectory) {
+                writeDir = 'deploy/';
+            }
+            else {
+                logger.log('Directory to write to: ' + dir.substring(staticDirectory.length, dir.length), 7);
+                writeDir =  'deploy' + dir.substring(staticDirectory.length, dir.length) + '/';
+                var folderExists = fs.existsSync(writeDir);
+                if(!folderExists) {
+                    fs.mkdirSync(writeDir);
+                }
+            }
+            logger.log(writeDir + fileNames[i], 7);
+            logger.log('FileName: ' + JSON.stringify(fileNames[i]), 7);
+            var data = fs.readFileSync(dir + '/' + fileNames[i]);
+            fs.writeFileSync(writeDir + fileNames[i], data);
+        }
+        //logger.log('Loading file ' + one + '/' + three, 7);
+        callback();
+    });
+}
 
 /**
  *  These are all for serving the view
