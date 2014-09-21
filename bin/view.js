@@ -267,6 +267,15 @@ View.prototype.generateCSS = function(minify, callback) {
     this.generateSupportFilesForDeploy('css', minify, callback);
 };
 
+function addInTemplates(pagetext, templates) {
+    var start = pageText.indexOf(TEMPLATE_KEY);
+    var end  = pageText.indexOf(TEMPLATE_KEY) + TEMPLATE_KEY.length;
+    var firstpart = pageText.substring(0, start);
+    var lastpart = pageText.substring(end, pageText.length);
+    // logger.log('template text: ' + template_text);
+    return(firstpart + templates + lastpart); 
+}
+
 View.prototype.renderForDeploy = function(callback) {
     var includes = this.includes;
     var pageText = this.pageText;
@@ -277,14 +286,9 @@ View.prototype.renderForDeploy = function(callback) {
     logger.debug('Loading the following file: ' + template_filename);
     var template_text = fs.readFileSync(template_filename).toString();
 
-    var start = pageText.indexOf(TEMPLATE_KEY);
-    var end  = pageText.indexOf(TEMPLATE_KEY) + TEMPLATE_KEY.length;
-    var firstpart = pageText.substring(0, start);
-    var lastpart = pageText.substring(end, pageText.length);
-    // logger.log('template text: ' + template_text);
-    pageText = firstpart + template_text + lastpart; 
-    logger.debug('Writing final html file...');
+    pageText = addInTemplates(pageText, template_text);
 
+    logger.debug('Writing final html file...');
     for(var i = 0; i < includes.length; i++) {
         var libobject = includes[i];
         var title = libobject.title.substring(1, libobject.title.length-1);
