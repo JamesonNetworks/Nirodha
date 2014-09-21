@@ -267,7 +267,7 @@ View.prototype.generateCSS = function(minify, callback) {
     this.generateSupportFilesForDeploy('css', minify, callback);
 };
 
-function addInTemplates(pagetext, templates) {
+function addInTemplates(pageText, templates) {
     var start = pageText.indexOf(TEMPLATE_KEY);
     var end  = pageText.indexOf(TEMPLATE_KEY) + TEMPLATE_KEY.length;
     var firstpart = pageText.substring(0, start);
