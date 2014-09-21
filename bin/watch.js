@@ -9,6 +9,8 @@ module.exports = function () {
         logger.info('Finished deploying');
     };
 
+    logger.info('Starting to watch current directory...');
+
     watch.createMonitor('./',
         function (monitor) {
             monitor.on("created", function (f) {

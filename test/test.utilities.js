@@ -161,4 +161,8 @@ suite('UtilitySuite', function() {
   test('testing getViewFromFileName with custom/js/index.js', function() {
     util.getViewFromFileName('custom/js/index.js').should.equal('index');
   });
+
+  test('testing getViewFromFileName with custom/templates/account_templates.html', function() {
+    util.getViewFromFileName('custom/templates/account_templates.html').should.equal('account');
+  });
 });

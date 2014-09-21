@@ -185,7 +185,8 @@ Util.prototype.getNirodhaPath = function () {
 Util.prototype.getViewFromFileName = function (filename) {
   // Determine if we are dealing with a templates file
   if(filename.indexOf('_templates') > 0) {
-    return filename.substring(0, filename.indexOf('_templates'));
+    var tempName = filename.substring(0, filename.indexOf('_templates')).split('/');
+    return tempName[tempName.length-1];
   }
   else if(filename.indexOf('.html') > 0 || filename.indexOf('.js') > 0 || filename.indexOf('.css') > 0) {
     var tempName = filename.split('.')[0].split('/');

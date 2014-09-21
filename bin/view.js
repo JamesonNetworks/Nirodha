@@ -116,7 +116,9 @@ View.prototype.create = function(callback) {
         else {
             this.includes = JSON.parse(fs.readFileSync(viewname + '.json', 'utf-8'));
             this.pageText = fs.readFileSync(viewname + '.html', 'utf-8');
-            callback(null, testing.view.viewcreated);
+            if(typeof(callback) !== 'undefined') {
+                callback(null, testing.view.viewcreated);                
+            }
         }
     });
 };
@@ -178,6 +180,9 @@ View.prototype.deploy = function(minify, callback) {
 View.prototype.generateSupportFilesForDeploy = function(type, minify, callback) {
     
     var viewHandle = this;
+    if(typeof(this.includes) === 'undefined') {
+        throw new Error('Includes was undefined');
+    }
     var includes = this.includes;
     async.series({
         BuildText: function(cb) {
