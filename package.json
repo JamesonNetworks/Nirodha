@@ -24,7 +24,7 @@
   },
   "scripts": {
     "test": "mocha -R progress -u tdd --recursive test/",
-    "testc": "istanbul cover ./node_modules/mocha/bin/_mocha -- -u tdd -R spec",
+    "testc": "istanbul cover ./node_modules/mocha/bin/_mocha -- -u tdd -R progress",
     "coveralls": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -u tdd -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && cat ./coverage/lcov.info | ./node_modules/codeclimate-test-reporter/bin/codeclimate.js && rm -rf ./coverage"
   },
   "engine": "node >= 0.10.x"
