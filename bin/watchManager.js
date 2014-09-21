@@ -1,6 +1,5 @@
 var utils = require('./utilities.js');
 var logger = require('jslogging');
-var testing = require('../testing.json');
 
 var nm = require('./nirodhaManager.js');
 try {
@@ -32,11 +31,11 @@ WatchManager.prototype.deploy = function(view, callback) {
 
     // Create the folder with the structure
     nm.deployForWatch(settings, view, callback);
-}
+};
 
 WatchManager.prototype.projectFileChangeEventHandler = function(filename, callback) {
     var view = utils.getViewFromFileName(filename);
     if(typeof(view) !== undefined) {
         this.deploy(view, callback);            
     }
-}
+};

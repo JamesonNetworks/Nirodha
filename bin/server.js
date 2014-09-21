@@ -1,16 +1,12 @@
 var logger = require('jslogging'),
     fs = require('fs'),
     async = require('async'),
-    compressor = require('node-minify'),
     url = require('url'),
-    path = require('path'),
-    _ = require('underscore'),
-    eventEmitter = require('events').EventEmitter;
+    path = require('path');
 
 var utils = require('./utilities.js');
 var lm = require('./libraryManager.js');
 var testing = require('../testing.json');
-var view = require('./view.js');
 
 // Constants
 var TEMPLATE_KEY = '{templates}';
@@ -35,10 +31,6 @@ var mimeTypes = {
 
 var localView;
 var directory;
-
-// Other crap
-// Method to get all files in directories
-var walkSync = utils.walkSync;
 
 exports = module.exports = new Server();
 
@@ -148,7 +140,7 @@ function handleRequest (req, res, rootDirectory, htmlFiles, callback) {
             }
         }
     }
-};
+}
 
 function parse(res, directory, view, callback) {
     /*

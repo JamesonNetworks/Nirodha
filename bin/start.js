@@ -1,11 +1,7 @@
 var http = require('http');
 var logger = require('jslogging');
 var fs = require('fs');
-var path = require('path');
-var settings = require('../settings.json');
 var async = require('async');
-var constants = require('./constants.js');
-var url = require('url');
 var utils = require('./utilities.js');
 var server = require('./server.js');
 
@@ -14,15 +10,8 @@ var lm = require('./libraryManager.js');
 
 var searchDirectories = [];
 
-// Method to get all files in directories
-var walkSync = utils.walkSync;
-
 // Filters
 var isHtmlFile = utils.isHtmlFile;
-var isJsFile = utils.isJsFile;
-var isCssFile = utils.isCssFile;
-
-var rootDirectory;
 
 module.exports = function (args, settings) {
 	var nm = require('./nirodhaManager.js');
@@ -81,10 +70,10 @@ module.exports = function (args, settings) {
 
 			http_server.on('error', function (err) {
 				logger.log('An error occured, ' + err, 1);
-				if (err.code == 'EADDRINUSE') {
+				if (err.code === 'EADDRINUSE') {
 					logger.log('The address is currently in use', 1);
 				}
-				else if(err.code == 'EACCES') {
+				else if(err.code === 'EACCES') {
 					logger.log('You do not have access to use the specified port, ' + err, 1);
 				}
 			});

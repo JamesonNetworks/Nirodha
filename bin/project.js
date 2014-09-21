@@ -10,8 +10,8 @@ exports = module.exports = new Project();
 
 exports.Project = Project;
 
-function Project(projectname) {
-};
+function Project() {
+}
 
 Project.prototype.init = function(projectname) {
     this.name = projectname;

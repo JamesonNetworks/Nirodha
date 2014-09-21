@@ -1,6 +1,4 @@
 var logger = require('jslogging');
-var fs = require('fs');
-var path = require('path');
 
 module.exports = function (args, settings, callback) {
 
@@ -10,7 +8,7 @@ module.exports = function (args, settings, callback) {
     var nm = require('./nirodhaManager.js');
     nm.setSettings(settings);
 
-	if(args.length != 1) {
+	if(args.length !== 1) {
 		logger.debug('Received more than 1 argument');
 	}
 	// Create the folder with the structure

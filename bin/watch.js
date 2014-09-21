@@ -1,39 +1,34 @@
 var logger = require('jslogging');
-var fs = require('fs');
-var path = require('path');
 var watch = require('watch');
-var utils = require('./utilities.js');
 
-var deploying = false;
-
-module.exports = function (args, settings) {
+module.exports = function () {
 
     var wm = require('./watchManager.js');
 
     var callback = function() {
         logger.info('Finished deploying');
-    }
+    };
 
     watch.createMonitor('./',
         function (monitor) {
-            monitor.on("created", function (f, stat) {
+            monitor.on("created", function (f) {
                 logger.log('Created file ' + f);
                 if(!(f.indexOf('deploy/') > -1)) {
                     wm.projectFileChangeEventHandler(f, callback);
                 }
             });
-            monitor.on("changed", function (f, curr, prev) {
+            monitor.on("changed", function (f) {
                 logger.log('Changed file ' + f);
                 if(!(f.indexOf('deploy/') > -1)) {
                     wm.projectFileChangeEventHandler(f, callback);
                 }
-            })
-            monitor.on("removed", function (f, stat) {
+            });
+            monitor.on("removed", function (f) {
                 logger.log('Removed file ' + f);
                 if(!(f.indexOf('deploy/') > -1)) {
                     wm.projectFileChangeEventHandler(f, callback);
                 }
-            })
+            });
         }
     );
 };

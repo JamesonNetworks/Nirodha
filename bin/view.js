@@ -206,6 +206,11 @@ View.prototype.generateSupportFilesForDeploy = function(type, minify, callback) 
             }
         },
         MinifyFile: function(cb) {
+            var include;
+            var includeTitle;
+
+            var inPath;
+            var outPath;
             if(minify) {
                 var minifier;
                 if(type === 'js') {
@@ -214,12 +219,6 @@ View.prototype.generateSupportFilesForDeploy = function(type, minify, callback) 
                 else if(type === 'css') {
                     minifier = 'yui-css';
                 }
-
-                var include;
-                var includeTitle;
-
-                var inPath;
-                var outPath;
 
                 for(var i = 0; i < includes.length; i++) {
                     include = includes[i];

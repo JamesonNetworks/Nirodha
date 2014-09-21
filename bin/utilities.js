@@ -89,12 +89,12 @@ Util.prototype.isCssFile = function(element) {
 function isJsFile(element) {
   //logger.log(element + ', Is this a JS file? ' + (element.indexOf('.js') > 0));
   return element.indexOf('.js') > 0;
-};
+}
 
 function isCssFile(element) {
   //logger.log(element + ', Is this a CSS file? ' + (element.indexOf('.css') > 0));
   return element.indexOf('.css') > 0;
-};
+}
 
 
 Util.prototype.getSearchDirectories = function(nirodhaPath) {
@@ -135,7 +135,7 @@ Util.prototype.deriveLibraries = function(searchDirectories) {
 
 // Returns a boolean, looks for duplicate names of JS and CSS files
 Util.prototype.hasDuplicateLibraries = function(libraries) {
-  logger.debug('Libraries is: ' + JSON.stringify(libraries))
+  logger.debug('Libraries is: ' + JSON.stringify(libraries));
   var librariesByName = [];
   for(var i = 0; i < libraries.length; i++) {
     for(var k = 0; k < libraries[i].length; k++) {
@@ -223,13 +223,10 @@ Util.prototype.copyFile = function(source, target, cb) {
 function findFiles(resultFileList, filter) {
   var returnableFiles = "";
   for(var i = 0; i < resultFileList.length; i++) {
-    if(typeof(resultFileList[i].fileNames) === 'undefined') {
-
-    }
-    else {
+    if(typeof(resultFileList[i].fileNames) !== 'undefined') {
       if(resultFileList[i].fileNames.filter(filter).length > 0) {
         returnableFiles += resultFileList[i].fileNames.filter(filter).toString() + ',';
-      }      
+      }  
     }
   }
   return returnableFiles; 
@@ -237,8 +234,8 @@ function findFiles(resultFileList, filter) {
 
 Util.prototype.findCSSFiles = function(resultFileList) {
   return findFiles(resultFileList, isCssFile);
-}
+};
 
 Util.prototype.findJsFiles = function(resultFileList) {
   return findFiles(resultFileList, isJsFile);
-}
+};

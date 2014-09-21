@@ -1,11 +1,8 @@
 var fs = require('fs');
 var logger = require('jslogging');
 var async = require('async');
-
 var testing = require('../testing.json');
 var utils = require('./utilities.js');
-
-var constants = require('./constants.js');
 
 var LibraryContainer;
 var Libraries;
@@ -15,9 +12,7 @@ var CSSFiles;
 var findCSSFiles = utils.findCSSFiles;
 var findJsFiles = utils.findJsFiles;
 
-// Filters
-var isJsFile = utils.isJsFile;
-var isCssFile = utils.isCssFile;
+var LIBRARY_NOT_FOUND = 'There is no view or library file which corresponds to the request';
 
 /**
  * Expose the root.
@@ -33,7 +28,7 @@ exports.LibraryManager = LibraryManager;
 
 function LibraryManager() {
 
-};
+}
 
 LibraryManager.prototype.init = function() {
 
@@ -47,7 +42,7 @@ LibraryManager.prototype.init = function() {
 
 		async.series(utils.deriveLibraries(searchDirectories),
 		function(err, libraries) {
-			libraryContainer = {};
+			var libraryContainer = {};
 
 			for(var i = 0; i < libraries.length; i++) {
 				for(var k = 0 ; k < libraries[i].length; k++) {
@@ -102,7 +97,7 @@ LibraryManager.prototype.init = function() {
 			logger.debug('Libraries contained in current lm: ' + JSON.stringify(Libraries));
 		});
 	}
-}
+};
 
 var getLibraryContents = function(uri, callback) {
 	logger.debug('Entering getLibraryContents...');
@@ -133,7 +128,6 @@ LibraryManager.prototype.getLibraryContentsAsString = function(uri, callback) {
 };
 
 function getLibraryContentsSync(uri) {
-	var pageText = '';
 	logger.debug('Entering getLibraryContentsSync...');
 	//logger.info(JSON.stringify(LibraryContainer));
 	if(typeof(LibraryContainer) === 'undefined') {
@@ -149,7 +143,7 @@ function getLibraryContentsSync(uri) {
 	else {
 		return '';
 	}
-};
+}
 
 LibraryManager.prototype.getLibraryContentsSync = function(uri) {
 	this.init();
@@ -184,7 +178,7 @@ LibraryManager.prototype.serveLibrary = function(uri, res, callback) {
 		}
 		else {
 			res.writeHead(404, {'Content-Type': 'text/plain'});
-			res.end(constants.LIBRARY_NOT_FOUND + ' ' + uri);
+			res.end(LIBRARY_NOT_FOUND + ' ' + uri);
 			if(typeof(callback) !== 'undefined') {
 				callback(null, testing.libraryManager.notfound);
 			}
