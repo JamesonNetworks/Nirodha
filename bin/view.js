@@ -174,7 +174,7 @@ View.prototype.deploy = function(callback) {
         },
         GenerateHTML: function(cb) {
             
-            viewHandle.generateHTML(cb);
+            viewHandle.renderForDeploy(cb);
         },
         CopyStaticFiles: function(cb) {
             
@@ -243,12 +243,16 @@ View.prototype.generateSupportFilesForDeploy = function(type, callback) {
             for(var i = 0; i < includes.length; i++) {
                 var include = includes[i];
                 var includeTitle = include.title.substring(1, include.title.length-1);
-                new compressor.minify({
-                    type: minifier,
-                    fileIn: './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type + '.temp',
-                    fileOut: './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type,
-                    callback: minifierCallback
-                });
+                try {
+                    new compressor.minify({
+                        type: minifier,
+                        fileIn: './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type + '.temp',
+                        fileOut: './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type
+                    });
+                }
+                catch (e) {
+                    logger.warn('Error occured in minification: ' + e);
+                }
             }
             cb();
         }
@@ -269,7 +273,7 @@ View.prototype.generateCSS = function(callback) {
     this.generateSupportFilesForDeploy('css', callback);
 };
 
-View.prototype.generateHTML = function(callback) {
+View.prototype.renderForDeploy = function(callback) {
     var includes = this.includes;
     var pageText = this.pageText;
 
@@ -305,25 +309,26 @@ View.prototype.copyStaticFiles = function(callback) {
     var staticDirectory = 'custom/static';
     utils.walkSync(staticDirectory, function(dir, directories, fileNames) {
         logger.debug('Directory: ' + dir);
-        logger.debug('FileNames: ' + JSON.stringify(fileNames));
-
-        for(var i = 0; i < fileNames.length; i++) {
-            var writeDir;
-            if(dir === staticDirectory) {
-                writeDir = 'deploy/';
-            }
-            else {
-                logger.log('Directory to write to: ' + dir.substring(staticDirectory.length, dir.length), 7);
-                writeDir =  'deploy' + dir.substring(staticDirectory.length, dir.length) + '/';
-                var folderExists = fs.existsSync(writeDir);
-                if(!folderExists) {
-                    fs.mkdirSync(writeDir);
+        logger.info('FileNames: ' + JSON.stringify(fileNames));
+        if(typeof(filenames) !== 'undefined') {
+            for(var i = 0; i < fileNames.length; i++) {
+                var writeDir;
+                if(dir === staticDirectory) {
+                    writeDir = 'deploy/';
                 }
+                else {
+                    logger.log('Directory to write to: ' + dir.substring(staticDirectory.length, dir.length), 7);
+                    writeDir =  'deploy' + dir.substring(staticDirectory.length, dir.length) + '/';
+                    var folderExists = fs.existsSync(writeDir);
+                    if(!folderExists) {
+                        fs.mkdirSync(writeDir);
+                    }
+                }
+                logger.log(writeDir + fileNames[i], 7);
+                logger.log('FileName: ' + JSON.stringify(fileNames[i]), 7);
+                var data = fs.readFileSync(dir + '/' + fileNames[i]);
+                fs.writeFileSync(writeDir + fileNames[i], data);
             }
-            logger.log(writeDir + fileNames[i], 7);
-            logger.log('FileName: ' + JSON.stringify(fileNames[i]), 7);
-            var data = fs.readFileSync(dir + '/' + fileNames[i]);
-            fs.writeFileSync(writeDir + fileNames[i], data);
         }
         //logger.log('Loading file ' + one + '/' + three, 7);
         callback();
@@ -380,7 +385,7 @@ View.prototype.generateIncludesAsHTMLInserts = function() {
     return results;
 };
 
-View.prototype.generateHTMLForServing = function() {
+View.prototype.render = function() {
     var includes = this.generateIncludesAsHTMLInserts();
     var pageText = this.pageText;
 

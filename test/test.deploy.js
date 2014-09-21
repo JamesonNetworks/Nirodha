@@ -106,6 +106,28 @@ suite('DeploySuite', function() {
 		});
 	});
 
+	test('Deploy index view with static folders', function(done) {
+		async.series([
+			function(cb) {
+				fs.writeFileSync('custom/static/staticfile.html', 'Nothing here!');
+				fs.mkdirSync('custom/static/folder');
+				fs.writeFileSync('custom/static/folder/staticfile.html', 'Nothing here!');
+				cb();
+			},
+			function(cb) {
+				deploy(['index'], settings, function(testing_code) {
+					testing_code.should.equal(testing.nirodhaManager.viewdeployed);
+					cb();
+				});
+			}
+		], function() {
+			fs.unlinkSync('custom/static/staticfile.html');
+			fs.unlinkSync('custom/static/folder/staticfile.html', 'Nothing here!');
+			fs.rmdirSync('custom/static/folder');
+			done();
+		});
+	});
+
 	test('Deploy all Views', function(done) {
 		async.series([
 			function(cb) {

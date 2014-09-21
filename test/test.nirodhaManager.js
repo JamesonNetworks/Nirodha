@@ -33,18 +33,6 @@ suite('NirodhaManagerSuite', function() {
     logger.setLogLevel(-1);
   });
 
-  test('Testing findJsFiles', function() {
-    var rawFileList = testing.directoryList;
-    var actual = nm.findJsFiles(rawFileList);
-    actual.should.equal('test.js,test.js,');
-  });
-
-  test('Testing findCSSFiles', function() {
-    var rawFileList = testing.directoryList;
-    var actual = nm.findCSSFiles(rawFileList);
-    actual.should.equal('test.css,test.css,');
-  });
-
   test('Testing handleRequest with no url to find', function(done) {
     // Mock up reqeust and response objects
     var req = {};

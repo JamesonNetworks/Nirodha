@@ -48,6 +48,18 @@ suite('UtilitySuite', function() {
     directoryList.fileNames.toString().split(',').filter(util.isCssFile)[0].should.equal(resultingDirectoryList[0]);
   });
 
+  test('Testing findJsFiles', function() {
+    var rawFileList = testing.directoryList;
+    var actual = util.findJsFiles(rawFileList);
+    actual.should.equal('test.js,test.js,');
+  });
+
+  test('Testing findCSSFiles', function() {
+    var rawFileList = testing.directoryList;
+    var actual = util.findCSSFiles(rawFileList);
+    actual.should.equal('test.css,test.css,');
+  });
+
   test('Testing getSearchDirectories', function() {
     var expectedDirectories = ['./custom', util.getNirodhaPath() + 'libs', 'custom/static', 'bower_components'];
     var searchDirectories = util.getSearchDirectories(util.getNirodhaPath());

@@ -54,13 +54,13 @@ module.exports = function (args, settings) {
 			var jsFiles = "";
 			var cssFiles = "";
 
-			jsFiles = nm.findJsFiles(libraries[0]);
-			jsFiles += ',' + nm.findJsFiles(libraries[1]);
+			jsFiles = utils.findJsFiles(libraries[0]);
+			jsFiles += ',' + utils.findJsFiles(libraries[1]);
 			logger.debug('JS files is : ' + jsFiles);
 			jsFiles = jsFiles.split(',');
 
-			cssFiles = nm.findCSSFiles(libraries[0]);
-			cssFiles += ',' + nm.findCSSFiles(libraries[1]);
+			cssFiles = utils.findCSSFiles(libraries[0]);
+			cssFiles += ',' + utils.findCSSFiles(libraries[1]);
 			logger.debug('CSS files is : ' + cssFiles);
 			cssFiles = cssFiles.split(',');
 

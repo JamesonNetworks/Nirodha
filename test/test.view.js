@@ -40,8 +40,8 @@ suite('View', function() {
         done();
     });
 
-    test('Testing view.generateHTMLForServing', function(done) {
-        var text = view.generateHTMLForServing();
+    test('Testing view.render', function(done) {
+        var text = view.render();
         text.should.equal(SERVED_HTML);
         done();
     });

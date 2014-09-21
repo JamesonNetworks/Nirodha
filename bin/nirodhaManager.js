@@ -40,10 +40,6 @@ var directory;
 // Method to get all files in directories
 var walkSync = utils.walkSync;
 
-// Filters
-var isJsFile = utils.isJsFile;
-var isCssFile = utils.isCssFile;
-
 exports = module.exports = new NirodhaManager();
 
 /**
@@ -299,14 +295,6 @@ NirodhaManager.prototype.setSettings = function(settings) {
 NirodhaManager.prototype.init = function(pView, pDirectory) {
 	directory = pDirectory;
 	view = pView;
-};
-
-NirodhaManager.prototype.findJsFiles = function(resultFileList) {
-	return findJsFiles(resultFileList);
-};
-
-NirodhaManager.prototype.findCSSFiles = function(resultFileList) {
-	return findCSSFiles(resultFileList);
 };
 
 NirodhaManager.prototype.deploy = function(settings, viewname, callback) {
