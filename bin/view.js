@@ -215,24 +215,18 @@ View.prototype.generateSupportFilesForDeploy = function(type, minify, callback) 
                     minifier = 'yui-css';
                 }
 
-                var minifierCallback = function(err) {
-                    if(err) {
-                        logger.warn('Error occured while minifying: ' + err);
-                    }
-                    try {
-                        fs.unlinkSync(inPath);
-                    }
-                    catch (e) {
-                        logger.warn('Problem deleting temp file:' + e);
-                    }  
-                };
+                var include;
+                var includeTitle;
+
+                var inPath;
+                var outPath;
 
                 for(var i = 0; i < includes.length; i++) {
-                    var include = includes[i];
-                    var includeTitle = include.title.substring(1, include.title.length-1);
+                    include = includes[i];
+                    includeTitle = include.title.substring(1, include.title.length-1);
 
-                    var inPath = './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type + '.temp';
-                    var outPath = './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type;
+                    inPath = './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type + '.temp';
+                    outPath = './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type;
 
                     try {
                         new compressor.minify({
@@ -247,12 +241,12 @@ View.prototype.generateSupportFilesForDeploy = function(type, minify, callback) 
                 }
             }
             else {
-                for(var i = 0; i < includes.length; i++) {
-                    var include = includes[i];
-                    var includeTitle = include.title.substring(1, include.title.length-1);
+                for(var k = 0; k < includes.length; k++) {
+                    include = includes[k];
+                    includeTitle = include.title.substring(1, include.title.length-1);
 
-                    var inPath = './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type + '.temp';
-                    var outPath = './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type;
+                    inPath = './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type + '.temp';
+                    outPath = './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type;
 
                     fs.writeFileSync(outPath, fs.readFileSync(inPath), 'utf-8');
                     fs.unlinkSync(inPath);
