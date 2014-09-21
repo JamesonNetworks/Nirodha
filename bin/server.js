@@ -4,7 +4,6 @@ var logger = require('jslogging'),
     url = require('url'),
     path = require('path');
 
-var utils = require('./utilities.js');
 var lm = require('./libraryManager.js');
 var testing = require('../testing.json');
 

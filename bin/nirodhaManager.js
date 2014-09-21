@@ -3,7 +3,6 @@ var logger = require('jslogging'),
 	_ = require('underscore'),
 	eventEmitter = require('events').EventEmitter;
 
-var utils = require('./utilities.js');
 var testing = require('../testing.json');
 var view = require('./view.js');
 
@@ -69,7 +68,6 @@ NirodhaManager.prototype._deploy = function(minify, settings, viewname, callback
 
 	logger.debug('nirodhaManager Current Views: ' + JSON.stringify(views));
 
-	var numberOfViewsToDeploy = views.length;
 	var deployedEventListener = new eventEmitter();
 	deployedEventListener.once('done', function() {
 		if(typeof(callback) !== 'undefined') {

@@ -137,7 +137,7 @@ function getLibraryContentsSync(uri) {
 
 	if(typeof(LibraryContainer[uri]) !== 'undefined') {
 		logger.debug('Found libray for ' + uri);
-		file = LibraryContainer[uri];
+		var file = LibraryContainer[uri];
 		return fs.readFileSync(file.dir + '/' + uri).toString();
 	}
 	else {
