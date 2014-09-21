@@ -10,6 +10,10 @@ module.exports = function (args, settings) {
 
     var wm = require('./watchManager.js');
 
+    var callback = function() {
+        logger.info('Finished deploying');
+    }
+
     watch.createMonitor('./',
         function (monitor) {
             monitor.on("created", function (f, stat) {

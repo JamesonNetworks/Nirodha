@@ -79,7 +79,14 @@ suite('View', function() {
     });
 
     test('Testing view.deploy', function(done) {
-        view.deploy(function(err, result) {
+        view.deploy(true, function(err, result) {
+            JSON.stringify(result).should.equal('{"GenerateJS":{"MinifyFile":"Minification Complete"},"GenerateCSS":{"MinifyFile":"Minification Complete"},"GenerateHTML":"HTML Successfully written","CopyStaticFiles":"Static files written"}')
+            done();
+        });
+    });
+
+    test('Testing view.deploy without minification', function(done) {
+        view.deploy(false, function(err, result) {
             JSON.stringify(result).should.equal('{"GenerateJS":{"MinifyFile":"Minification Complete"},"GenerateCSS":{"MinifyFile":"Minification Complete"},"GenerateHTML":"HTML Successfully written","CopyStaticFiles":"Static files written"}')
             done();
         });

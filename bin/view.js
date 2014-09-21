@@ -155,22 +155,19 @@ View.prototype.getLibraries = function(cwd, type, include, callback) {
     return getLibraries(cwd, type, include, callback);
 };
 
-View.prototype.deploy = function(callback) {
+View.prototype.deploy = function(minify, callback) {
     var viewHandle = this;
     async.series({
         GenerateJS: function(cb) {
-            
-            viewHandle.generateJavascript(cb);
+            viewHandle.generateJavascript(minify, cb);
         },
         GenerateCSS: function(cb) {
-            
-            viewHandle.generateCSS(cb);
+            viewHandle.generateCSS(minify, cb);
         },
         GenerateHTML: function(cb) {
             viewHandle.renderForDeploy(cb);
         },
         CopyStaticFiles: function(cb) {
-            
             viewHandle.copyStaticFiles(cb);
         }
     }, function(err, result) {
@@ -178,7 +175,7 @@ View.prototype.deploy = function(callback) {
     });
 };
 
-View.prototype.generateSupportFilesForDeploy = function(type, callback) {
+View.prototype.generateSupportFilesForDeploy = function(type, minify, callback) {
     
     var viewHandle = this;
     var includes = this.includes;
@@ -209,41 +206,59 @@ View.prototype.generateSupportFilesForDeploy = function(type, callback) {
             }
         },
         MinifyFile: function(cb) {
-            
-            var minifier;
-            if(type === 'js') {
-                minifier = 'gcc';
+            if(minify) {
+                var minifier;
+                if(type === 'js') {
+                    minifier = 'gcc';
+                }
+                else if(type === 'css') {
+                    minifier = 'yui-css';
+                }
+
+                var minifierCallback = function(err) {
+                    if(err) {
+                        logger.warn('Error occured while minifying: ' + err);
+                    }
+                    try {
+                        fs.unlinkSync(inPath);
+                    }
+                    catch (e) {
+                        logger.warn('Problem deleting temp file:' + e);
+                    }  
+                };
+
+                for(var i = 0; i < includes.length; i++) {
+                    var include = includes[i];
+                    var includeTitle = include.title.substring(1, include.title.length-1);
+
+                    var inPath = './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type + '.temp';
+                    var outPath = './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type;
+
+                    try {
+                        new compressor.minify({
+                            type: minifier,
+                            fileIn: inPath,
+                            fileOut: outPath
+                        });
+                    }
+                    catch (e) {
+                        logger.warn('Error occured in minification: ' + e);
+                    }
+                }
             }
-            else if(type === 'css') {
-                minifier = 'yui-css';
+            else {
+                for(var i = 0; i < includes.length; i++) {
+                    var include = includes[i];
+                    var includeTitle = include.title.substring(1, include.title.length-1);
+
+                    var inPath = './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type + '.temp';
+                    var outPath = './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type;
+
+                    fs.writeFileSync(outPath, fs.readFileSync(inPath), 'utf-8');
+                    fs.unlinkSync(inPath);
+                }
             }
 
-            var minifierCallback = function(err) {
-                if(err) {
-                    logger.warn('Error occured while minifying: ' + err);
-                }
-                try {
-                    fs.unlinkSync('./deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type + '.temp');
-                }
-                catch (e) {
-                    logger.warn('Problem deleting temp file:' + e);
-                }  
-            };
-
-            for(var i = 0; i < includes.length; i++) {
-                var include = includes[i];
-                var includeTitle = include.title.substring(1, include.title.length-1);
-                try {
-                    new compressor.minify({
-                        type: minifier,
-                        fileIn: './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type + '.temp',
-                        fileOut: './deploy/' + type + '/' + viewHandle.name + '-' + includeTitle + '.' + type
-                    });
-                }
-                catch (e) {
-                    logger.warn('Error occured in minification: ' + e);
-                }
-            }
             cb(null, 'Minification Complete');
         }
     }, function(err, result) {
@@ -251,12 +266,12 @@ View.prototype.generateSupportFilesForDeploy = function(type, callback) {
     });
 };
 
-View.prototype.generateJavascript = function(callback) {
-    this.generateSupportFilesForDeploy('js', callback);
+View.prototype.generateJavascript = function(minify, callback) {
+    this.generateSupportFilesForDeploy('js', minify, callback);
 };
 
-View.prototype.generateCSS = function(callback) {
-    this.generateSupportFilesForDeploy('css', callback);
+View.prototype.generateCSS = function(minify, callback) {
+    this.generateSupportFilesForDeploy('css', minify, callback);
 };
 
 View.prototype.renderForDeploy = function(callback) {
@@ -295,7 +310,7 @@ View.prototype.copyStaticFiles = function(callback) {
     var staticDirectory = 'custom/static';
     utils.walkSync(staticDirectory, function(dir, directories, fileNames) {
         logger.debug('Directory: ' + dir);
-        logger.info('FileNames: ' + JSON.stringify(fileNames));
+        logger.debug('FileNames: ' + JSON.stringify(fileNames));
         if(typeof(fileNames) !== 'undefined') {
             for(var i = 0; i < fileNames.length; i++) {
                 var writeDir;

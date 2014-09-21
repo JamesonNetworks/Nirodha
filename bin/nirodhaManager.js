@@ -63,7 +63,7 @@ NirodhaManager.prototype.init = function(pView, pDirectory) {
 	view = pView;
 };
 
-NirodhaManager.prototype.deploy = function(settings, viewname, callback) {
+NirodhaManager.prototype._deploy = function(minify, settings, viewname, callback) {
 	var views = [];
 	if(typeof(viewname) === 'undefined') {
 
@@ -118,6 +118,14 @@ NirodhaManager.prototype.deploy = function(settings, viewname, callback) {
 	for(var i = 0; i < views.length; i++) {
 		var viewObject = view;
 		viewObject.init(views[i]);
-		viewObject.deploy(deployCallback);
+		viewObject.deploy(minify, deployCallback);
 	}
+};
+
+NirodhaManager.prototype.deploy = function(settings, viewname, callback) {
+	this._deploy(true, settings, viewname, callback);
+};
+
+NirodhaManager.prototype.deployForWatch = function(settings, viewname, callback) {
+	this._deploy(false, settings, viewname, callback);
 };

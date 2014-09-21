@@ -31,7 +31,7 @@ WatchManager.prototype.deploy = function(view, callback) {
     logger.info('Deploying the following views: ' + JSON.stringify(view));
 
     // Create the folder with the structure
-    nm.deploy(settings, view, callback);
+    nm.deployForWatch(settings, view, callback);
 }
 
 WatchManager.prototype.projectFileChangeEventHandler = function(filename, callback) {
