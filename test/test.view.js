@@ -55,4 +55,18 @@ suite('View', function() {
             done();
         });
     });
+
+    test('Testing view.create with no view name', function(done) {
+        view.init('');
+        try {
+            view.create(function() {
+                throw new Error('Should not have gotten here');
+                done();
+            });
+        }
+        catch (e) {
+            e.should.not.equal(null);
+            done();
+        } 
+    });
 });

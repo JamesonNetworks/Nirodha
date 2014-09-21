@@ -44,7 +44,7 @@ View.prototype.init = function(viewname) {
 
 View.prototype.create = function(callback) {
     var viewname = this.name;
-    if(typeof(this.name) === 'undefined') {
+    if(typeof(this.name) === 'undefined' || this.name === '') {
         throw new Error('No view name, did you call view.init with a name?');
     }
     var nirodhaPath = utils.getNirodhaPath();
