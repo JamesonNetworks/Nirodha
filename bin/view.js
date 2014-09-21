@@ -52,7 +52,6 @@ View.prototype.create = function(callback) {
         createDefaultView: function(cb) {
             utils.copyFile(nirodhaPath + 'tmpl/defaultView.html', viewname + '.html', function(err) {
                 if(err) {
-                    logger.warn('Problem copying default view: ' + err);
                     cb(err);
                 }
                 else {
@@ -64,7 +63,6 @@ View.prototype.create = function(callback) {
         createDefaultJavascript: function(cb) {
             utils.copyFile(nirodhaPath + 'tmpl/defaultView.js', 'custom/js/' + viewname + '.js', function(err) {
                 if(err) {
-                    logger.warn('Problem copying default js: ' + err);
                     cb(err);
                 }
                 else {
@@ -76,7 +74,6 @@ View.prototype.create = function(callback) {
         createDefaultCSS: function(cb) {
             utils.copyFile(nirodhaPath + 'tmpl/defaultView.css', 'custom/css/' + viewname + '.css', function(err) {
                 if(err) {
-                    logger.warn('Problem copying default css: ' + err);
                     cb(err);
                 }
                 else {
@@ -89,7 +86,6 @@ View.prototype.create = function(callback) {
             // Copy in the default json accessories
             utils.copyFile(nirodhaPath + 'tmpl/defaultView.json', viewname + '.json', function(err) {
                 if(err) {
-                    logger.warn('Problem copying default JSON: ' + err);
                     cb(err);
                 }
                 else {
@@ -102,7 +98,6 @@ View.prototype.create = function(callback) {
             // Copy in the default json accessories
             utils.copyFile(nirodhaPath + 'tmpl/defaultView_templates.html', 'custom/templates/' + viewname + '_templates.html', function(err) {
                 if(err) {
-                    logger.warn('Problem copying default view: ' + err);
                     cb(err);
                 }
                 else {
@@ -139,8 +134,7 @@ function getLibraries(cwd, type, include, callback) {
     logger.debug('JS Library lengths: ' + files.length);
 
     if(files.length === 0) {
-        logger.debug('Files length was zero');
-        callback(null, null);
+        callback(null, '');
     }
     else {
         
@@ -173,7 +167,6 @@ View.prototype.deploy = function(callback) {
             viewHandle.generateCSS(cb);
         },
         GenerateHTML: function(cb) {
-            
             viewHandle.renderForDeploy(cb);
         },
         CopyStaticFiles: function(cb) {
@@ -181,9 +174,6 @@ View.prototype.deploy = function(callback) {
             viewHandle.copyStaticFiles(cb);
         }
     }, function(err, result) {
-        if(err) {
-            logger.warn('Error generating supporting files: ' + err);
-        }
         callback(err, result);
     });
 };
@@ -254,18 +244,14 @@ View.prototype.generateSupportFilesForDeploy = function(type, callback) {
                     logger.warn('Error occured in minification: ' + e);
                 }
             }
-            cb();
+            cb(null, 'Minification Complete');
         }
-    }, function(err, result) {            
-        if(err) {
-            logger.warn(err);
-        }
+    }, function(err, result) {
         callback(err, result);
     });
 };
 
 View.prototype.generateJavascript = function(callback) {
-    
     this.generateSupportFilesForDeploy('js', callback);
 };
 
@@ -302,7 +288,7 @@ View.prototype.renderForDeploy = function(callback) {
     }
 
     fs.writeFileSync('./deploy/' + this.name + '.html', pageText);
-    callback();
+    callback(null, 'HTML Successfully written');
 };
 
 View.prototype.copyStaticFiles = function(callback) {
@@ -310,7 +296,7 @@ View.prototype.copyStaticFiles = function(callback) {
     utils.walkSync(staticDirectory, function(dir, directories, fileNames) {
         logger.debug('Directory: ' + dir);
         logger.info('FileNames: ' + JSON.stringify(fileNames));
-        if(typeof(filenames) !== 'undefined') {
+        if(typeof(fileNames) !== 'undefined') {
             for(var i = 0; i < fileNames.length; i++) {
                 var writeDir;
                 if(dir === staticDirectory) {
@@ -331,7 +317,7 @@ View.prototype.copyStaticFiles = function(callback) {
             }
         }
         //logger.log('Loading file ' + one + '/' + three, 7);
-        callback();
+        callback(null, 'Static files written');
     });
 };
 

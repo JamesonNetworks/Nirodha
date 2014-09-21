@@ -69,4 +69,19 @@ suite('View', function() {
             done();
         } 
     });
+
+    test('Testing error path of view.create', function(done) {
+        process.chdir(os.tmpdir());
+        view.create(function(err, result) {
+            err.should.not.equal(null);
+            done();
+        });
+    });
+
+    test('Testing view.deploy', function(done) {
+        view.deploy(function(err, result) {
+            JSON.stringify(result).should.equal('{"GenerateJS":{"MinifyFile":"Minification Complete"},"GenerateCSS":{"MinifyFile":"Minification Complete"},"GenerateHTML":"HTML Successfully written","CopyStaticFiles":"Static files written"}')
+            done();
+        });
+    });
 });

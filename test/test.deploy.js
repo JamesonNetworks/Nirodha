@@ -101,6 +101,7 @@ suite('DeploySuite', function() {
 				});
 			}
 		], function() {
+			fs.existsSync('deploy/staticfile.html').should.equal(true);
 			fs.unlinkSync('custom/static/staticfile.html');
 			done();
 		});
