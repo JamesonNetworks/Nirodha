@@ -7,6 +7,7 @@ var async = require('async');
 var constants = require('./constants.js');
 var url = require('url');
 var utils = require('./utilities.js');
+var server = require('./server.js');
 
 // Handle to library manager
 var lm = require('./libraryManager.js');
@@ -42,7 +43,6 @@ module.exports = function (args, settings) {
 	// Start by searching the custom directories
 	async.series(utils.deriveLibraries(searchDirectories),
 		function (err, libraries) {
-			debugger;
 			logger.debug(JSON.stringify(libraries));
 			if(utils.hasDuplicateLibraries(libraries)) {
 				logger.warn('Duplicate libraries found. This occurs when two js or css libraries have conflicting names. Resolve the conflict in your libraries before continuing.');
@@ -72,14 +72,14 @@ module.exports = function (args, settings) {
 			lm.init(libraries, jsFiles, cssFiles);
 
 			logger.info('Creating server ...');
-			nm.setRootDirectory(rootDirectory);
-			nm.setHtmlFiles(htmlFiles);
+			server.setRootDirectory(rootDirectory);
+			server.setHtmlFiles(htmlFiles);
 
-			var server = http.createServer(function(req, res) {
-				nm.handleRequest(req, res);
+			var http_server = http.createServer(function(req, res) {
+				server.handleRequest(req, res);
 			}).listen(settings.port);
 
-			server.on('error', function (err) {
+			http_server.on('error', function (err) {
 				logger.log('An error occured, ' + err, 1);
 				if (err.code == 'EADDRINUSE') {
 					logger.log('The address is currently in use', 1);
